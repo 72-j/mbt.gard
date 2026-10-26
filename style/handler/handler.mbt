@@ -3,8 +3,8 @@
 // 型(进阶正门)= Guard::new 泛型钩子(核心包);本包 = 方言面:
 // 实现三个具名回调(admit/dispatch/audit,sub:String + Json 进出,
 // 零泛型、零 turbofish、用户全程不写 async 三字母),一个 mount
-// 接线成四段门。impl 侧 self 注实现类型(moonrdb 役3 律),trait
-// 方法 pub impl 跨包可见(G1 语言律三针)。
+// 接线成四段门。impl 侧 self 注**实现类型**(MoonBit 方法律),trait
+// 方法以 pub impl 跨包可见(可见性律:裸 impl 包私有)。
 
 ///|
 /// 初级回调面:认证门三回调。主体即 sub(String);req/resp 走 Json。
