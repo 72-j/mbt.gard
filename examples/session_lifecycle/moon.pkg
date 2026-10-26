@@ -1,0 +1,8 @@
+import {
+  "thy1016/moongrd",
+  "thy1016/moongrd/adapter/mooncry",
+  "thy1016/moongrd/memstore",
+  "moonbitlang/async",
+}
+
+pkgtype(kind: "executable")

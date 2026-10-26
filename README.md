@@ -17,6 +17,12 @@ trait 后面(参考实现绑 mooncry,与 Guardian 委托 Joken 同构)。
 双 token → 四段门审计 → 换发旋转 → 重放撤族 → 族谱尽戮 → 篡改拒,六幕
 连映(真 HMAC 签名,时间/熵常量注入)。
 
+**会话全生命周期**:`moon run examples/session_lifecycle`——登录 → 进门 →
+access 过期 → refresh 换发续命 → 登出吊销,五幕讲完一个会话的一生。
+
+**回调方言**:`moon run examples/handler_demo`——实现三个具名回调 +
+一句 mount,初级用户视角的三幕剧(放行/陌生人拒/伪造拒)。
+
 ### 1 签发与校验(纯函数;时间/熵全参数注入)
 
 ```moonbit
