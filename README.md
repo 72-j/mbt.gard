@@ -49,6 +49,14 @@ moon add thy1016/moongrd
 
 ## 快速上手
 
+**Guides 文档廊**(`guides/`,按手感选路):初级——
+[五分钟上一门](guides/01-getting-started.md)、
+[门房回调](guides/02-handler-callbacks.md);高级——
+[token 核与旋转](guides/03-token-core.md)、
+[四段管线与 Guard 全形](guides/04-guard-pipeline.md)、
+[五换挡位与 adapter](guides/05-swap-points.md)。索引见
+[guides/README.md](guides/README.md)。
+
 ### 登录与校验(token 核)
 
 ```moonbit
