@@ -1,0 +1,11 @@
+import {
+  "thy1016/moongrd",
+  "thy1016/moongrd/adapter/mooncry",
+  "thy1016/moongrd/memstore",
+  "thy1016/moongrd/style/handler",
+  "moonbitlang/async",
+}
+
+options(
+  "is-main": true,
+)
