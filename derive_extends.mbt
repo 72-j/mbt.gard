@@ -36,3 +36,15 @@ pub extend RefreshRecord with Eq::{not_equal, equal}
 
 ///|
 pub extend RefreshRecord with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend RefreshErr with Eq::{not_equal, equal}
+
+///|
+pub extend RefreshErr with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Refreshed with Eq::{not_equal, equal}
+
+///|
+pub extend Refreshed with @moonbitlang/core/debug.Debug::{to_repr}

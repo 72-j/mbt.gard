@@ -8,6 +8,8 @@ import {
 // Values
 pub fn issue(GuardConfig, &Signer, Int64, String, TokenType, String) -> Issued
 
+pub fn refresh(GuardConfig, &Signer, &RefreshStore, Int64, String, String) -> Result[Refreshed, RefreshErr]
+
 pub fn verify(GuardConfig, &Signer, Int64, String) -> Result[Claims, VerifyErr]
 
 pub fn verify_for(GuardConfig, &Signer, Int64, String, TokenType) -> Result[Claims, VerifyErr]
@@ -48,16 +50,30 @@ pub fn Issued::equal(Self, Self) -> Bool
 pub fn Issued::not_equal(Self, Self) -> Bool
 pub fn Issued::to_repr(Self) -> @debug.Repr
 
+pub(all) enum RefreshErr {
+  Verify(VerifyErr)
+  UnknownToken
+  Replayed(String)
+  Revoked(Claims)
+} derive(Eq, @debug.Debug)
+
 pub(all) struct RefreshRecord {
   family_id : String
   sub : String
   issued_at : Int64
   expires_at : Int64
   used : Bool
+  revoked : Bool
 } derive(Eq, @debug.Debug)
 pub fn RefreshRecord::equal(Self, Self) -> Bool
 pub fn RefreshRecord::not_equal(Self, Self) -> Bool
 pub fn RefreshRecord::to_repr(Self) -> @debug.Repr
+
+pub(all) struct Refreshed {
+  refresh : Issued
+  family_id : String
+  sub : String
+} derive(Eq, @debug.Debug)
 
 pub(all) enum TokenType {
   Access
@@ -85,24 +101,24 @@ pub fn VerifyErr::to_repr(Self) -> @debug.Repr
 // Type aliases
 
 // Traits
-pub trait Cipher {
+pub(open) trait Cipher {
   fn seal(Self, Bytes, Bytes, Bytes) -> Bytes
   fn open(Self, Bytes, Bytes, Bytes) -> Bytes?
 }
 
-pub trait RefreshStore {
+pub(open) trait RefreshStore {
   fn put(Self, String, RefreshRecord) -> Unit
   fn get(Self, String) -> RefreshRecord?
   fn mark_used(Self, String) -> Unit
   fn revoke_family(Self, String) -> Unit
 }
 
-pub trait RevocationStore {
+pub(open) trait RevocationStore {
   fn revoked(Self, String) -> Bool
   fn revoke(Self, String) -> Unit
 }
 
-pub trait Signer {
+pub(open) trait Signer {
   fn sign(Self, Bytes) -> Bytes
   fn verify(Self, Bytes, Bytes) -> Bool
 }
