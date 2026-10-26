@@ -66,7 +66,9 @@ pub(all) struct Guard[TSubj, TReq, TResp] {
   protocol : &AuthProtocol
   resolve : async (String) -> TSubj?
   dispatch : async (TSubj, TReq) -> TResp
-  audit : async (AuditEvent) -> Unit
+  /// 审计沉没槽:None = 吞流(D-G11 合法沉没)——缺席表示,不造空 async
+  /// 函数(空体字面量吃 [0067],deny-warn 门下即红)。
+  audit : (async (AuditEvent) -> Unit)?
 }
 
 ///|
@@ -82,15 +84,24 @@ pub fn[TSubj, TReq, TResp] Guard::new(
   audit? : async (AuditEvent) -> Unit,
   protocol? : &AuthProtocol,
 ) -> Guard[TSubj, TReq, TResp] {
-  let audit = match audit {
-    Some(a) => a
-    None => async fn(_e : AuditEvent) -> Unit { () }
-  }
   let protocol : &AuthProtocol = match protocol {
     Some(p) => p
     None => TokenProtocol::new()
   }
   { config, signer, revocations, protocol, resolve, dispatch, audit, }
+}
+
+///|
+/// 审计发射单点:None = 吞流(D-G11 合法沉没),Some 直发。体内有 async
+/// 调用,自身不触 [0067];管线发射不再构造空 async 函数。
+async fn[TSubj, TReq, TResp] Guard::audit_emit(
+  self : Guard[TSubj, TReq, TResp],
+  event : AuditEvent,
+) -> Unit {
+  match self.audit {
+    Some(emit) => emit(event)
+    None => ()
+  }
 }
 
 ///|
@@ -125,7 +136,7 @@ pub async fn[TSubj, TReq, TResp] Guard::run(
     ) {
     Ok(c) => c
     Err(e) => {
-      let _ = (self.audit)({
+      let _ = self.audit_emit({
         stage: "verify",
         sub: "",
         jti: "",
@@ -135,7 +146,7 @@ pub async fn[TSubj, TReq, TResp] Guard::run(
       return Err(GuardErr::Verify(e))
     }
   }
-  (self.audit)({
+  self.audit_emit({
     stage: "verify",
     sub: claims.sub,
     jti: claims.jti,
@@ -143,7 +154,7 @@ pub async fn[TSubj, TReq, TResp] Guard::run(
     detail: "",
   })
   if self.revocations.revoked(claims.jti) {
-    (self.audit)({
+    self.audit_emit({
       stage: "revocation",
       sub: claims.sub,
       jti: claims.jti,
@@ -152,7 +163,7 @@ pub async fn[TSubj, TReq, TResp] Guard::run(
     })
     return Err(GuardErr::Revoked)
   }
-  (self.audit)({
+  self.audit_emit({
     stage: "revocation",
     sub: claims.sub,
     jti: claims.jti,
@@ -162,7 +173,7 @@ pub async fn[TSubj, TReq, TResp] Guard::run(
   let subject = match (self.resolve)(claims.sub) {
     Some(s) => s
     None => {
-      (self.audit)({
+      self.audit_emit({
         stage: "resolve",
         sub: claims.sub,
         jti: claims.jti,
@@ -172,7 +183,7 @@ pub async fn[TSubj, TReq, TResp] Guard::run(
       return Err(GuardErr::Unresolved(claims.sub))
     }
   }
-  (self.audit)({
+  self.audit_emit({
     stage: "resolve",
     sub: claims.sub,
     jti: claims.jti,
@@ -180,7 +191,7 @@ pub async fn[TSubj, TReq, TResp] Guard::run(
     detail: "",
   })
   let resp = (self.dispatch)(subject, req)
-  (self.audit)({
+  self.audit_emit({
     stage: "dispatch",
     sub: claims.sub,
     jti: claims.jti,
