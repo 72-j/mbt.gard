@@ -13,6 +13,10 @@ trait 后面(参考实现绑 mooncry,与 Guardian 委托 Joken 同构)。
 
 ## 五分钟上手(D-G8 教程律:示例内嵌可跑形,真源 = 各 _test.mbt)
 
+**一键全链演示**:`cd moongrd && moon run examples/walkthrough`——登录
+双 token → 四段门审计 → 换发旋转 → 重放撤族 → 族谱尽戮 → 篡改拒,六幕
+连映(真 HMAC 签名,时间/熵常量注入)。
+
 ### 1 签发与校验(纯函数;时间/熵全参数注入)
 
 ```moonbit
