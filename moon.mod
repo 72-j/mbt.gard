@@ -4,7 +4,7 @@ version = "0.1.2"
 
 readme = "README.md"
 
-repository = "https://gitlink.org.cn/thy7/mbt.grd"
+repository = "https://gitlink.org.cn/thy7/mbt.gard"
 
 license = "Apache-2.0"
 
