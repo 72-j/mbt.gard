@@ -76,3 +76,30 @@ adapter(D-G6 同构)——YAGNI,不预铺。
 | 口令拉伸 | 框架外 | `PasswordHasher` trait(触发才立) | 慢哈希不进校验路 |
 | hooks 异步色 | async fn 型零 import;async trait 声明语法已证(D-G12 案 A) | async impl 实练(G2 runner 已用 async 字面量钩子) | 核心零依赖 |
 | 会话认证协议 | **AuthProtocol trait 已落**(TokenProtocol 缺省;`protocol?` 可选举参) | bearer 外新协议 = 新 impl | 校验序/短路框架私产 |
+
+## 附录、设计决策表(D-G1~G20;公开版)
+
+| # | 裁定 |
+|---|---|
+| D-G1 | 核心包零外部依赖:transport / storage / crypto-impl 三不进;依赖只在 adapter 与消费方 |
+| D-G2 | 时间注入纯函数化:`now : Int64` 参数进,核心不读钟 |
+| D-G3 | refresh 旋转一次性作废;已用 refresh 再现 = 重放,自动撤全族 |
+| D-G4 | 四段管线 verify→resolve→dispatch→audit,段间纯值,拒绝短路带原因 |
+| D-G5 | allowed_drift 配置化,默认 5000ms;构造期注入,无全局无环境变量 |
+| D-G6 | Signer / Cipher trait 在核心,实现在 adapter/mooncry;核心不 import mooncry |
+| D-G7 | 安全信道(PSK-CR / HKDF / GCM seq-IV / 滑窗)不进本框架,住 moonkcp secchan |
+| D-G8 | 文档律:moduledoc 即教程,示例内嵌可跑形 |
+| D-G9 | 模块名 moongrd(MoonGrd),Apache-2.0;受众 = 所有需要在 MoonBit 里做认证的服务作者 |
+| D-G10 | 扩展面三档:多式有状态 = trait、单钩子 = 闭包、verify 段 = 框架私产不回调 |
+| D-G11 | audit 钩子不可失败:返回 Unit,审计写败是 sink 自己的事,管线不被拖死 |
+| D-G12 | hooks 全 async 型(案 A 定谳):async fn 型语言级,零 import 可写字段/定义/传参直调;async trait 方法已证——核心保零依赖 |
+| D-G13 | Guard 单构造点收拢全部钩子:消费方一处组装,不零散传参 |
+| D-G14 | 加密供应商维持 mooncry;experimental_crypto 为补件库(getrandom/noise 按子包取用);moonvault 经评审否决 |
+| D-G15 | 熵源分层:核心零随机(jti/盐参数注入);消费侧熵源候选 = experimental_crypto/getrandom(mooncry 无随机面已核) |
+| D-G16 | 慢哈希律:PBKDF2/Argon2 永不进 token 校验路(校验高频,快是特性);合法落点全框架外——PSK 伸展(信道层)/口令存储(存储侧)/静态加密(消费方) |
+| D-G17 | 初级方言:Guard::new 全标签实参 + audit 可省(省略 = 吞流 no-op);泛型从内联钩子推断,免 turbofish |
+| D-G18 | style 廊:每目录 = 一家方言的活代码包(型 = 核心正门,方言 = 侧门);首录 style/handler——DoorHandler 三具名回调 + mount 接线 |
+| D-G19 | 会话认证协议位走 trait 非 enum(开放集判据):AuthProtocol trait + TokenProtocol 缺省,`protocol?` 可选举参;校验序/短路框架私产;协议构造期钉死禁在线协商 |
+| D-G20 | 柔性规程四分法:部署期换算法 → trait;运行期换行为 → 回调(热换走 swap 形);部署期调数值 → 字段配置;安全语义/线形/封闭枚举 → 钉死并写明 |
+
+> 完整设计卷(含考据与评审底账)为内部工作卷,未随仓发布;本表为对外锚点。
