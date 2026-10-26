@@ -1,0 +1,11 @@
+.DS_Store
+_build/
+.mooncakes/
+.vscode/
+*.log
+*.bak
+todo.md
+ctx.md
+.mingspace/
+.playground/
+bak/

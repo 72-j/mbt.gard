@@ -1,0 +1,108 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "thy1016/moongrd"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn issue(GuardConfig, &Signer, Int64, String, TokenType, String) -> Issued
+
+pub fn verify(GuardConfig, &Signer, Int64, String) -> Result[Claims, VerifyErr]
+
+pub fn verify_for(GuardConfig, &Signer, Int64, String, TokenType) -> Result[Claims, VerifyErr]
+
+// Errors
+
+// Types and methods
+pub(all) struct Claims {
+  sub : String
+  iss : String
+  aud : String
+  iat : Int64
+  exp : Int64
+  typ : TokenType
+  jti : String
+} derive(Eq, @debug.Debug)
+pub fn Claims::equal(Self, Self) -> Bool
+pub fn Claims::not_equal(Self, Self) -> Bool
+pub fn Claims::to_repr(Self) -> @debug.Repr
+
+pub(all) struct GuardConfig {
+  issuer : String
+  audience : String
+  allowed_drift_ms : Int64
+  access_ttl_ms : Int64
+  refresh_ttl_ms : Int64
+} derive(Eq, @debug.Debug)
+pub fn GuardConfig::equal(Self, Self) -> Bool
+pub fn GuardConfig::make(String, String, Int64, Int64) -> Self
+pub fn GuardConfig::not_equal(Self, Self) -> Bool
+pub fn GuardConfig::to_repr(Self) -> @debug.Repr
+
+pub(all) struct Issued {
+  token : String
+  claims : Claims
+} derive(Eq, @debug.Debug)
+pub fn Issued::equal(Self, Self) -> Bool
+pub fn Issued::not_equal(Self, Self) -> Bool
+pub fn Issued::to_repr(Self) -> @debug.Repr
+
+pub(all) struct RefreshRecord {
+  family_id : String
+  sub : String
+  issued_at : Int64
+  expires_at : Int64
+  used : Bool
+} derive(Eq, @debug.Debug)
+pub fn RefreshRecord::equal(Self, Self) -> Bool
+pub fn RefreshRecord::not_equal(Self, Self) -> Bool
+pub fn RefreshRecord::to_repr(Self) -> @debug.Repr
+
+pub(all) enum TokenType {
+  Access
+  Refresh
+} derive(Eq, @debug.Debug)
+pub fn TokenType::equal(Self, Self) -> Bool
+pub fn TokenType::not_equal(Self, Self) -> Bool
+pub fn TokenType::of_wire(String) -> Self?
+pub fn TokenType::to_repr(Self) -> @debug.Repr
+pub fn TokenType::wire(Self) -> String
+
+pub(all) enum VerifyErr {
+  Malformed(String)
+  BadMac
+  Expired(Claims)
+  NotYetValid(Claims)
+  WrongIssuer(Claims)
+  WrongAudience(Claims)
+  WrongType(Claims)
+} derive(Eq, @debug.Debug)
+pub fn VerifyErr::equal(Self, Self) -> Bool
+pub fn VerifyErr::not_equal(Self, Self) -> Bool
+pub fn VerifyErr::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits
+pub trait Cipher {
+  fn seal(Self, Bytes, Bytes, Bytes) -> Bytes
+  fn open(Self, Bytes, Bytes, Bytes) -> Bytes?
+}
+
+pub trait RefreshStore {
+  fn put(Self, String, RefreshRecord) -> Unit
+  fn get(Self, String) -> RefreshRecord?
+  fn mark_used(Self, String) -> Unit
+  fn revoke_family(Self, String) -> Unit
+}
+
+pub trait RevocationStore {
+  fn revoked(Self, String) -> Bool
+  fn revoke(Self, String) -> Unit
+}
+
+pub trait Signer {
+  fn sign(Self, Bytes) -> Bytes
+  fn verify(Self, Bytes, Bytes) -> Bool
+}
