@@ -174,3 +174,49 @@ async test "G2 初级方言:audit 可省(吞流 no-op),五参起步" {
   // 吞流审计:缺省 no-op,事件不进账
   assert_eq(g2_log.events.length(), 0)
 }
+
+///|
+/// 自定义协议:万能票(演示协议位换挡——测试/内网工具形;真协议照
+/// TokenProtocol 形实作校验)。
+struct MasterProtocol {}
+
+///|
+pub impl @moongrd.AuthProtocol for MasterProtocol with fn verify_access(
+  self : MasterProtocol,
+  config~ : @moongrd.GuardConfig,
+  signer~ : &@moongrd.Signer,
+  now~ : Int64,
+  token~ : String,
+) -> Result[@moongrd.Claims, @moongrd.VerifyErr] {
+  let _ = (self, config, signer, now, token)
+  Ok({
+    sub: "master",
+    iss: "master",
+    aud: "master",
+    iat: 0L,
+    exp: 9223372036854775807L,
+    typ: @moongrd.TokenType::Access,
+    jti: "jti-master",
+  })
+}
+
+///|
+async test "G2 协议换挡:自定义 AuthProtocol 万能票进门,管线四行照走" {
+  g2_log.events.clear()
+  let door = @moongrd.Guard::new(
+    config=g1_config(),
+    signer=g1_signer(),
+    revocations=@memstore.MemRevocationStore::new(),
+    resolve=async fn(name : String) -> DUser? { Some({ name, }) },
+    dispatch=async fn(u : DUser, _req : String) -> String { "\{u.name}:ok" },
+    audit=g2_audit,
+    protocol=MasterProtocol::{ },
+  )
+  let out = door.run(1000000L, "any-credential-string", "hi")
+  match out {
+    Ok(resp) => assert_eq(resp, "master:ok")
+    Err(_) => abort("换挡协议应放行")
+  }
+  // 协议位只换 verify 算法,管线序不换:四行审计照走
+  assert_eq(g2_log.events.length(), 4)
+}

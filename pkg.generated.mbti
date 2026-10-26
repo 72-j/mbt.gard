@@ -45,11 +45,12 @@ pub(all) struct Guard[TSubj, TReq, TResp] {
   config : GuardConfig
   signer : &Signer
   revocations : &RevocationStore
+  protocol : &AuthProtocol
   resolve : async (String) -> TSubj?
   dispatch : async (TSubj, TReq) -> TResp
   audit : async (AuditEvent) -> Unit
 }
-pub fn[TSubj, TReq, TResp] Guard::new(config~ : GuardConfig, signer~ : &Signer, revocations~ : &RevocationStore, resolve~ : async (String) -> TSubj?, dispatch~ : async (TSubj, TReq) -> TResp, audit? : async (AuditEvent) -> Unit) -> Self[TSubj, TReq, TResp]
+pub fn[TSubj, TReq, TResp] Guard::new(config~ : GuardConfig, signer~ : &Signer, revocations~ : &RevocationStore, resolve~ : async (String) -> TSubj?, dispatch~ : async (TSubj, TReq) -> TResp, audit? : async (AuditEvent) -> Unit, protocol? : &AuthProtocol) -> Self[TSubj, TReq, TResp]
 pub async fn[TSubj, TReq, TResp] Guard::run(Self[TSubj, TReq, TResp], Int64, String, TReq) -> Result[TResp, GuardErr]
 
 pub(all) struct GuardConfig {
@@ -112,6 +113,11 @@ pub fn Refreshed::equal(Self, Self) -> Bool
 pub fn Refreshed::not_equal(Self, Self) -> Bool
 pub fn Refreshed::to_repr(Self) -> @debug.Repr
 
+pub struct TokenProtocol {
+}
+pub fn TokenProtocol::new() -> Self
+pub impl AuthProtocol for TokenProtocol
+
 pub(all) enum TokenType {
   Access
   Refresh
@@ -138,6 +144,10 @@ pub fn VerifyErr::to_repr(Self) -> @debug.Repr
 // Type aliases
 
 // Traits
+pub(open) trait AuthProtocol {
+  async fn verify_access(Self, config~ : GuardConfig, signer~ : &Signer, now~ : Int64, token~ : String) -> Result[Claims, VerifyErr]
+}
+
 pub(open) trait Cipher {
   fn seal(Self, Bytes, Bytes, Bytes) -> Bytes
   fn open(Self, Bytes, Bytes, Bytes) -> Bytes?

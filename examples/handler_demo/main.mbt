@@ -11,7 +11,7 @@ struct Reception {
 
 ///|
 /// 认不认:resolve 段(false = 陌生人拒)
-pub impl @handler.DoorHandler for Reception with admit(
+pub impl @handler.DoorHandler for Reception with fn admit(
   self : Reception,
   sub : String,
 ) -> Bool {
@@ -20,17 +20,19 @@ pub impl @handler.DoorHandler for Reception with admit(
 
 ///|
 /// 怎么干:dispatch 段(req/resp 走 Json)
-pub impl @handler.DoorHandler for Reception with dispatch(
+pub impl @handler.DoorHandler for Reception with fn dispatch(
   self : Reception,
   sub : String,
   req : Json,
 ) -> Json {
-  Json::string("[\{self.allow} 的门房] 已为 \{sub} 处理 \{req.stringify()}")
+  Json::string(
+    "[\{self.allow} 的门房] 已为 \{sub} 处理 \{req.stringify()}",
+  )
 }
 
 ///|
 /// 怎么记:audit 段(不可失败;不想记就写空体)
-pub impl @handler.DoorHandler for Reception with audit(
+pub impl @handler.DoorHandler for Reception with fn audit(
   self : Reception,
   e : @moongrd.AuditEvent,
 ) -> Unit {
@@ -50,10 +52,10 @@ async fn main {
     Bytes::make(32, b'\x33'),
   )
   let door = @handler.mount(
-    config=config,
-    signer=signer,
+    config~,
+    signer~,
     revocations=@memstore.MemRevocationStore::new(),
-    handler=Reception::{ allow: "alice" },
+    handler=Reception::{ allow: "alice", },
   )
   println("== 回调方言:实现三回调 + 一句 mount ==")
   println("")
@@ -87,7 +89,8 @@ async fn main {
   println("")
   println("── 伪造票:verify 段拒 ──")
   let n = alice.token.length()
-  match door.run(1000L, "f" + alice.token[1:n].to_owned(), Json::string("越权")) {
+  match
+    door.run(1000L, "f" + alice.token[1:n].to_owned(), Json::string("越权")) {
     Ok(_) => println("  ?!伪造竟过")
     Err(e) => println("  拒 → \{e.to_repr()}")
   }

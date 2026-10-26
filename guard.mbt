@@ -21,12 +21,49 @@ pub(all) struct AuditEvent {
 } derive(Eq, Debug)
 
 ///|
+/// 会话认证协议位(D-G19:开放集,trait 非 enum)。框架私产的是校验序
+/// 与短路逻辑;verify 的算法/协议在此换挡。缺省 TokenProtocol =
+/// bearer token(初级无感);新协议 = 新 impl,管线零改。
+/// 注:refresh 旋转属 token 协议的会话续命面,不在本 trait。
+pub(open) trait AuthProtocol {
+  async fn verify_access(
+    self : Self,
+    config~ : GuardConfig,
+    signer~ : &Signer,
+    now~ : Int64,
+    token~ : String,
+  ) -> Result[Claims, VerifyErr]
+}
+
+///|
+/// bearer token 协议(缺省实现):HMAC 签名 access 票,核心 verify_for 形。
+pub struct TokenProtocol {}
+
+///|
+pub fn TokenProtocol::new() -> TokenProtocol {
+  TokenProtocol::{ }
+}
+
+///|
+pub impl AuthProtocol for TokenProtocol with fn verify_access(
+  self : TokenProtocol,
+  config~ : GuardConfig,
+  signer~ : &Signer,
+  now~ : Int64,
+  token~ : String,
+) -> Result[Claims, VerifyErr] {
+  let _ = self
+  verify_for(config, signer, now, token, TokenType::Access)
+}
+
+///|
 /// 单构造点(D-G13):三钩子由消费方注入;主体型 TSubj 泛型——框架
 /// 不假设任何用户库(Resolver 消费方实现,茗篇 §2.6)。
 pub(all) struct Guard[TSubj, TReq, TResp] {
   config : GuardConfig
   signer : &Signer
   revocations : &RevocationStore
+  protocol : &AuthProtocol
   resolve : async (String) -> TSubj?
   dispatch : async (TSubj, TReq) -> TResp
   audit : async (AuditEvent) -> Unit
@@ -35,6 +72,7 @@ pub(all) struct Guard[TSubj, TReq, TResp] {
 ///|
 /// 初级方言(D-G17):全标签实参 + audit 可省——省略即吞流形 no-op
 /// (D-G11 的合法沉没),初级三钩起步,进阶再挂 audit=。
+/// protocol 可省——省略即缺省 bearer token(D-G19)。
 pub fn[TSubj, TReq, TResp] Guard::new(
   config~ : GuardConfig,
   signer~ : &Signer,
@@ -42,12 +80,17 @@ pub fn[TSubj, TReq, TResp] Guard::new(
   resolve~ : async (String) -> TSubj?,
   dispatch~ : async (TSubj, TReq) -> TResp,
   audit? : async (AuditEvent) -> Unit,
+  protocol? : &AuthProtocol,
 ) -> Guard[TSubj, TReq, TResp] {
   let audit = match audit {
     Some(a) => a
     None => async fn(_e : AuditEvent) -> Unit { () }
   }
-  { config, signer, revocations, resolve, dispatch, audit, }
+  let protocol : &AuthProtocol = match protocol {
+    Some(p) => p
+    None => TokenProtocol::new()
+  }
+  { config, signer, revocations, protocol, resolve, dispatch, audit, }
 }
 
 ///|
@@ -74,7 +117,12 @@ pub async fn[TSubj, TReq, TResp] Guard::run(
   req : TReq,
 ) -> Result[TResp, GuardErr] {
   let claims = match
-    verify_for(self.config, self.signer, now, token, TokenType::Access) {
+    self.protocol.verify_access(
+      config=self.config,
+      signer=self.signer,
+      now~,
+      token~,
+    ) {
     Ok(c) => c
     Err(e) => {
       let _ = (self.audit)({
@@ -141,3 +189,7 @@ pub async fn[TSubj, TReq, TResp] Guard::run(
   })
   Ok(resp)
 }
+
+///|
+/// trait 方法显式晋升([0079] 标准动作)。
+pub extend TokenProtocol with AuthProtocol::{verify_access}

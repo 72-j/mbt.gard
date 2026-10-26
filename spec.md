@@ -75,3 +75,4 @@ adapter(D-G6 同构)——YAGNI,不预铺。
 | 信道 | **在位 PSK-CR(已通);备位 Noise IKpsk2(A2 评审上座)** | NK/KK/XX/签名挑战/TLS/ML-KEM 按需 | 信道永不在本仓;SessionKeys 唯一交换物 |
 | 口令拉伸 | 框架外 | `PasswordHasher` trait(触发才立) | 慢哈希不进校验路 |
 | hooks 异步色 | async fn 型零 import;async trait 声明语法已证(D-G12 案 A) | async impl 实练(G2 runner 已用 async 字面量钩子) | 核心零依赖 |
+| 会话认证协议 | **AuthProtocol trait 已落**(TokenProtocol 缺省;`protocol?` 可选举参) | bearer 外新协议 = 新 impl | 校验序/短路框架私产 |

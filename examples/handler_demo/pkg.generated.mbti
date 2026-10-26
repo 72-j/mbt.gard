@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "thy1016/moongrd/examples/handler_demo"
+
+import {
+  "thy1016/moongrd",
+  "thy1016/moongrd/style/handler",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+type Reception
+pub impl @handler.DoorHandler for Reception
+
+// Type aliases
+
+// Traits
