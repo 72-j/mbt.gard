@@ -221,3 +221,52 @@ test "G0 畸形拒:无点/坏字母表/坏载荷形" {
   assert_true(verify(config, signer, 1000000L, "a.b") is Err(Malformed(_)))
   assert_true(verify(config, signer, 1000000L, "eyJ.A@") is Err(Malformed(_)))
 }
+
+///|
+test "G0 b64url 边界:空串往返/垫符拒/尾残拒" {
+  let empty = b""
+  assert_eq(b64url_decode(b64url_encode(empty)), Some(empty))
+  // 垫符 '=' 不收(无垫线形纪律)
+  assert_true(b64url_decode("QUJD=") is None)
+  // 合法三字组
+  assert_true(b64url_decode("QUJD") is Some(_))
+  // 尾残留非零拒("AZ" 两码元 12 位,尾 4 位 1001 ≠ 0)
+  assert_true(b64url_decode("AZ") is None)
+}
+
+///|
+test "G0 claims 反解:多余字段无视/缺字段拒/typ 未知拒" {
+  let config = g0_config()
+  let signer = g0_signer()
+  let issued = issue(
+    config,
+    signer,
+    1000000L,
+    "alice",
+    TokenType::Access,
+    "jti-x1",
+  )
+  let _ = issued
+  // 多余字段无视(前向兼容)
+  let superset = @utf8.encode(
+    "{\"sub\":\"alice\",\"iss\":\"iss1\",\"aud\":\"aud1\",\"iat\":1000000,\"exp\":1060000,\"typ\":\"access\",\"jti\":\"j1\",\"extra\":1}",
+  )
+  match claims_of_wire(superset) {
+    Some(c) => assert_eq(c.sub, "alice")
+    None => abort("超集载荷应可解")
+  }
+  // 缺字段拒
+  assert_true(claims_of_wire(@utf8.encode("{\"sub\":\"alice\"}")) is None)
+  // typ 未知拒
+  let bad_typ = @utf8.encode(
+    "{\"sub\":\"a\",\"iss\":\"i\",\"aud\":\"u\",\"iat\":1,\"exp\":2,\"typ\":\"sha3\",\"jti\":\"j\"}",
+  )
+  assert_true(claims_of_wire(bad_typ) is None)
+}
+
+///|
+test "G0 TokenType 线形反解:未知值 None" {
+  assert_true(TokenType::of_wire("access") is Some(_))
+  assert_true(TokenType::of_wire("refresh") is Some(_))
+  assert_true(TokenType::of_wire("sha3") is None)
+}

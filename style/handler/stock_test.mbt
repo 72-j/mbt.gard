@@ -112,3 +112,31 @@ async test "审计换装:吞流换收集,行数开始进账" {
   let _ = door.run(1000000L, stock_token("alice", "jti-f4"), Json::string("x"))
   assert_eq(log.length(), 4)
 }
+
+///|
+async test "stock dispatch 换装:回声换静态应答,已挂门即时生效" {
+  let handler = @handler.FlexDoor::new(
+    admit_fn=@handler.admit_allowlist(allow=["alice"]),
+    dispatch_fn=@handler.dispatch_echo(prefix="[flex] "),
+    audit_fn=@handler.audit_silent(),
+  )
+  let door = @handler.mount(
+    config=stock_config(),
+    signer=stock_signer(),
+    revocations=@memstore.MemRevocationStore::new(),
+    handler~,
+  )
+  let token = stock_token("alice", "jti-s1")
+  match door.run(1000000L, token, Json::string("q")) {
+    Ok(resp) => assert_true(resp.stringify().contains("[flex]"))
+    Err(_) => abort("回声形应绿")
+  }
+  // 一键换装:回声换维护应答
+  handler.swap_dispatch(dispatch=fn(_sub : String, _req : Json) -> Json {
+    Json::string("maintenance")
+  })
+  match door.run(1000000L, token, Json::string("q")) {
+    Ok(resp) => assert_eq(resp, Json::string("maintenance"))
+    Err(_) => abort("换装后应绿")
+  }
+}

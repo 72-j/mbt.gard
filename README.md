@@ -1,96 +1,78 @@
 # MoonGrd
 
-Guardian 式认证管道框架(MoonBit)。access/refresh 双 token 旋转 + 四段分发
-管线(verify → resolve → dispatch → audit,段间纯值);transport-free、
-storage-free、crypto-impl-free——核心包零依赖,密码学藏 `Signer`/`Cipher`
-trait 后面(参考实现绑 mooncry,与 Guardian 委托 Joken 同构)。
+Guardian 式认证管道框架(MoonBit):access/refresh 双 token 旋转 + 四段
+分发管线(verify → revocation → resolve → dispatch,段段审计)。三针采自
+Elixir Guardian:双 token 旋转、`allowed_drift` 时钟漂移容忍、Plug 式
+段间纯值管线。
+
+transport-free、storage-free、crypto-impl-free——核心包零依赖,密码学藏
+`Signer`/`Cipher` trait 后面(参考实现绑 mooncry,与 Guardian 委托 Joken
+同构)。
+
+包结构:`thy1016/moongrd`(token 核与四段门)＋ `thy1016/moongrd/memstore`
+(内存账本)＋ `thy1016/moongrd/style/handler`(回调方言)＋
+`thy1016/moongrd/adapter/mooncry`(真加密面)。
 
 > 安全信道(PSK-CR 握手 / HKDF / AEAD seq-IV / 滑窗防重放)不属于本框架——
-> 那是 TLS 层的活,住传输侧(moonkcp `secchan`,另役)。本框架的 token 走信道传。
+> 那是 TLS 层的活,住传输侧(moonkcp `secchan`)。本框架的 token 走信道传。
 
-**状态**:v0.1.0——路线 G0(token 核)→ G1(旋转+重放检测)→ G2(四段管线)
-→ G3(mooncry 绑定)全线走完;32 罐绿;四个可运行示例;设计卷/规格卷在册
-(`spec.md` 演进锚)。0.x 实验期:API 仍可能随反馈调整。
+**状态**:v0.1.0——G0(token 核)→ G1(旋转+重放检测)→ G2(四段管线)
+→ G3(mooncry 绑定)全线走完;38 罐绿;四个可运行示例;设计决策表
+(D-G1~G20)与演进锚公开于 `spec.md`。0.x 实验期:API 仍可能随反馈调整。
+
+## 特性
+
+- **token 核**:双 token 签发/校验/带门校验,定序 JSON + base64url 线形,
+  HMAC 签名;时间与熵全参数注入(核心零时钟零随机)。
+- **旋转语义**:refresh 一次性作废,已用票再现 = 重放,自动撤全族。
+- **四段门**:段段审计、拒绝短路带拒因;三种姿势任选(回调方言 / 标签
+  钩子 / 泛型全权)。
+- **五个换挡位**(全 trait):算法 Signer、AEAD Cipher、认证协议
+  AuthProtocol、存储 RefreshStore/RevocationStore、信道 Handshake
+  (外置 secchan)——新实现 = 新 impl,框架零改。
+- **stock 预制 + 一键换装**:名单准入/回声派工/审计三形现成,FlexDoor
+  `swap_*` 运行时热换(紧急停门一行)。
 
 ## 安装
+
+确保环境中已安装 MoonBit 工具链,然后在模块根目录:
 
 ```bash
 moon add thy1016/moongrd
 ```
 
-或直接以 gitlink 仓为依赖:`https://gitlink.org.cn/thy7/mbt.grd`。
-核心包零外部依赖;`adapter/mooncry`(真加密面)按需引,自带
-`cc06b/mooncry` 依赖。
+核心包在消费包的 `moon.pkg` `import` 块中添加 `"thy1016/moongrd"`
+(`@moongrd` 前缀);回调方言另加 `"thy1016/moongrd/style/handler"`
+(`@handler` 前缀);真加密面另加 `"thy1016/moongrd/adapter/mooncry"`
+(`@mooncry` 前缀);内存账本另加 `"thy1016/moongrd/memstore"`
+(`@memstore` 前缀)。
 
-## 特性总览
+## 快速上手
 
-- **token 核**:access/refresh 双 token,HMAC 签名线形(定序 JSON +
-  base64url),校验/带门校验/换发三式纯函数,时间与熵全参数注入。
-- **旋转语义**:refresh 一次性作废,已用票再现 = 重放,自动撤全族。
-- **四段门**:verify → revocation → resolve → dispatch,段段审计、
-  拒绝短路带拒因;三姿势任选(回调方言 / 标签钩子 / 泛型全权)。
-- **四个换挡位**(全 trait):算法 Signer、AEAD Cipher、存储
-  RefreshStore/RevocationStore、认证协议 AuthProtocol——新实现 = 新
-  impl,框架零改。
-- **stock 预制 + 一键换装**:名单准入/回声派工/审计三形现成,
-  FlexDoor `swap_*` 运行时热换(紧急停门一行)。
-
-## 已知边界(0.x)
-
-- 记录层/secchan 钉 AES-GCM(ChaCha20 换挡 = RecordCipher trait 位,
-  需求触发);rekey 留接口未实现。
-- Ed25519 Signer 备位未落(需求触发)。
-- 0.x 实验期:未经独立安全审计,公网部署请配合信道层 PFS(Noise
-  IKpsk2,见 spec §五)并自行评审。
-
-## 五分钟上手(D-G8 教程律:示例内嵌可跑形,真源 = 各 _test.mbt)
-
-**一键全链演示**:`cd moongrd && moon run examples/walkthrough`——登录
-双 token → 四段门审计 → 换发旋转 → 重放撤族 → 族谱尽戮 → 篡改拒,六幕
-连映(真 HMAC 签名,时间/熵常量注入)。
-
-**会话全生命周期**:`moon run examples/session_lifecycle`——登录 → 进门 →
-access 过期 → refresh 换发续命 → 登出吊销,五幕讲完一个会话的一生。
-
-**回调方言**:`moon run examples/handler_demo`——实现三个具名回调 +
-一句 mount,初级用户视角的三幕剧(放行/陌生人拒/伪造拒)。
-
-**一键换装**:`style/handler` 内置预制回调库(名单准入/全放全拒/回声
-派工/上屏·吞流·收集审计)+ `FlexDoor`(三回调函数位 + `swap_admit`/
-`swap_dispatch`/`swap_audit` 运行时一键换装——紧急停门 =
-`door_handler.swap_admit(admit=admit_none())`,已挂门即时生效)。
-
-**换 verify 算法**:`moon run examples/signer_swap`——同一管线,HMAC-SHA512 /
-AES-CMAC / Ed25519 三位签名者三换三绿;交叉核验全拒演示"算法不换算"。
-
-### 1 签发与校验(纯函数;时间/熵全参数注入)
+### 登录与校验(token 核)
 
 ```moonbit
-let config = @moongrd.GuardConfig::make("iss1", "aud1", 60000L, 600000L)
+let config = @moongrd.GuardConfig::make(
+  issuer="demo-iss",
+  audience="demo-app",
+  access_ttl_ms=60000L,
+  refresh_ttl_ms=600000L,
+)
 let signer : &@moongrd.Signer = @mooncry.HmacSha256Signer::new(session_key)
+// 签发:时间与熵(jti)由调用方注入
 let access = @moongrd.issue(config, signer, now, "alice", @moongrd.TokenType::Access, jti_a)
 let refresh = @moongrd.issue(config, signer, now, "alice", @moongrd.TokenType::Refresh, jti_r)
-store.put(jti_r, { family_id: "fam-1", sub: "alice", issued_at: now,
-                   expires_at: refresh.claims.exp, used: false, revoked: false })
 // 业务门:typ 不对即拒
-let claims = @moongrd.verify_for(config, signer, now, access.token, @moongrd.TokenType::Access)
-```
-
-### 2 换发(旋转一次性 + 重放撤全族)
-
-```moonbit
-match @moongrd.refresh(config, signer, store, now, refresh_token, next_jti) {
-  Ok(r) => // 新 refresh 到手;access 用 issue() 另发
-  Err(@moongrd.RefreshErr::Replayed(fam)) => // 盗用!全族已自动作废
-  Err(@moongrd.RefreshErr::Verify(Expired(_))) => // 回握手
-  ...
+match @moongrd.verify_for(config, signer, now, access.token, @moongrd.TokenType::Access) {
+  Ok(claims) => // claims.sub 即主体
+  Err(e) => // 拒因:过期/签名不符/型不符……
 }
 ```
 
-### 3 四段门(三种姿势,按手感选)
+### 四段门(三种姿势,按手感选)
 
-**最简形(回调方言,`style/handler`)**——实现三个具名回调,mount 即得
-一门;主体即 sub,req/resp 走 Json,全程不写 async:
+**最简形(回调方言)**——实现三个具名回调,mount 即得一门;主体即
+sub,req/resp 走 Json,全程不写 async:
 
 ```moonbit
 pub impl DoorHandler for MyDoor with admit(self : MyDoor, sub : String) -> Bool { ... }
@@ -112,38 +94,121 @@ let door = @moongrd.Guard::new(
 )
 ```
 
-**进阶形(挂审计)**——每段落一行事件,fail 短路带拒因;泛型全权
-(任意主体/进出型)同门加 `audit=` 即得。四段语义三者同一:
-verify → revocation → resolve → dispatch。
+**进阶形(挂审计 + 协议换挡)**——每段落一行审计事件;`protocol=`
+可换认证协议(缺省 bearer token):
 
-### 4 真加密面(adapter/mooncry)
+```moonbit
+let door = @moongrd.Guard::new(
+  config=config, signer=signer, revocations=revocations,
+  resolve=..., dispatch=...,
+  audit=async fn(e : @moongrd.AuditEvent) -> Unit { ... },
+  protocol=my_protocol,
+)
+```
 
-HMAC-SHA256 签名 + AES-256-GCM 密封。key 来源:启动期口令/PSK 经
-Argon2/PBKDF2 拉伸(mooncry 直调——慢哈希不进校验路,D-G16);运行期
-nonce/jti 由你的 CSPRNG 注入(核心零随机,D-G2;mooncry 无随机面,
-推荐 experimental_crypto/getrandom)。
+### 换发与旋转
 
-## 设计渊源
+```moonbit
+match @moongrd.refresh(config, signer, store, now, refresh_token, next_jti) {
+  Ok(r) => // 新 refresh 到手;access 用 issue() 另发
+  Err(@moongrd.RefreshErr::Replayed(family)) => // 盗用!全族已自动作废
+  Err(@moongrd.RefreshErr::Verify(Expired(_))) => // 回握手重登录
+  ...
+}
+```
 
-三针采自 Elixir Guardian(moonkcp admin plane A0 v2 回灌,裁定 D-AUTH7/8/9):
+### 预制回调与一键换装
 
-- access/refresh 双 token,refresh 旋转一次性作废;
-- `allowed_drift` 时钟漂移容忍配置化(默认 5000ms);
-- 四段分发管线,段间纯值(采 Plug 组合)。
+```moonbit
+let handler = @handler.FlexDoor::demo(allow=["alice"], prefix="[admin] ")
+// 运行时一键换装(已挂门即时生效):
+handler.swap_admit(admit=@handler.admit_none())   // 紧急停门
+handler.swap_admit(admit=@handler.admit_allowlist(allow=["alice", "carol"]))
+handler.swap_audit(audit=@handler.audit_collector(log=lines))
+```
 
-## 扩展面分寸(D-G10)
+stock 七工厂:`admit_allowlist` / `admit_all` / `admit_none` /
+`dispatch_echo` / `audit_println` / `audit_silent` / `audit_collector`。
+
+### 示例廊(四口,一键可跑)
+
+```bash
+moon run examples/walkthrough          # 全链六幕:登录/门/旋转/重放撤族/篡改拒
+moon run examples/session_lifecycle    # 会话一生五幕:登录→过期→换发→登出
+moon run examples/handler_demo         # 回调方言三幕
+moon run examples/signer_swap          # 换 verify 算法三幕(HMAC-SHA512/CMAC/Ed25519)
+```
+
+## API 总览
+
+| 入口(`@moongrd`) | 作用 |
+|---|---|
+| `GuardConfig::make(issuer~, audience~, access_ttl_ms~, refresh_ttl_ms~)` | 配置(drift 默认 5000ms) |
+| `issue(config, signer, now, sub, typ, jti)` | 签发(纯函数) |
+| `verify(config, signer, now, token)` | 校验(任一 typ) |
+| `verify_for(config, signer, now, token, typ)` | 带门校验 |
+| `refresh(config, signer, store, now, token, next_jti)` | 换发(旋转 + 重放撤全族) |
+| `Guard::new(config~, signer~, revocations~, resolve~, dispatch~, audit?, protocol?)` | 四段门单构造点 |
+| `Guard::run(now, token, req)` | 过门 |
+| trait 五位 | `Signer` `Cipher` `RefreshStore` `RevocationStore` `AuthProtocol` |
+
+| 入口(`@handler`) | 作用 |
+|---|---|
+| `DoorHandler`(admit/dispatch/audit)+ `mount(...)` | 回调方言接线 |
+| `admit_allowlist` / `admit_all` / `admit_none` | 预制准入 |
+| `dispatch_echo` | 预制派工 |
+| `audit_println` / `audit_silent` / `audit_collector` | 预制审计 |
+| `FlexDoor::new / demo` + `swap_admit / swap_dispatch / swap_audit` | 可换装门房 |
+
+| 入口(`@mooncry` / `@memstore`) | 作用 |
+|---|---|
+| `HmacSha256Signer::new(key)` | 真签名面(RFC 4231 KAT 过 trait) |
+| `AesGcmCipher::new(key)` | AEAD 密封面 |
+| `MemRefreshStore::new / sweep`、`MemRevocationStore::new` | 内存账本 |
+
+## 错误面
+
+```
+VerifyErr   Malformed(线形/编码/定型败) · BadMac(签名不符/篡改)
+            · Expired(claims) · NotYetValid(claims) · WrongIssuer(claims)
+            · WrongAudience(claims) · WrongType(claims)
+RefreshErr  Verify(内含 VerifyErr;Expired = 回握手信号)
+            · UnknownToken(mac 过但账本无记录) · Replayed(family)(已撤族)
+            · Revoked(claims)
+GuardErr    Verify(内含) · Revoked · Unresolved(sub)
+```
+
+语义三条:核心面全 `Result`/`Option` 化,无 abort 无 trap;mac 校验前的
+错误不携带载荷(不可信物不外传),mac 后的错误携带 claims 供审计定罪;
+拒绝一律无 oracle(失败与失败不可区分到超出拒因)。
+
+## 设计边界
 
 回调收在**数据面**(数据从哪来、结果到哪去),不收在**控制面**(校验序、
 短路逻辑)——verify 段是框架私产,不开放回调;换算法(Signer)≠ 关校验。
 
 | 扩展点 | 形 |
 |---|---|
-| `Signer`(sign/verify,有状态成对操作) | trait |
+| `Signer` / `Cipher` / `AuthProtocol`(有状态算法/协议面) | trait |
 | `RefreshStore` / `RevocationStore`(多式共享状态) | trait |
 | `resolve` / `dispatch` / `audit`(单钩子) | 闭包 |
-| `audit` 特例 | 不可失败(返回 `Unit`,写败是 sink 自己的事) |
+| TTL / drift / issuer / audience | 字段配置 |
+| 校验序、线形格式、Claims 形状、旋转策略 | **钉死**(安全语义) |
 
-全部钩子在一个 `Guard` 构造点收拢,消费方一处组装。
+已知边界(0.x):记录层钉 AES-GCM(ChaCha20 换挡 = trait 位,需求触发);
+rekey 留接口未实现;Ed25519 Signer 备位未落;未经独立安全审计——公网
+部署请配合信道层 PFS 并自行评审。
+
+## 测试与验证
+
+```bash
+moon test --target native        # 38 罐
+```
+
+构成:token 核与线形边界(b64url 边界/claims 反解/drift 界)/旋转与账本
+(重放/撤族/清扫)/四段管线(审计序/短路/协议换挡)/回调方言与一键换装。
+含 RFC 4231 HMAC 已知答案向量过 `Signer` trait。四个示例为可跑文档
+(`moon run examples/<名字> --target native`)。
 
 ## 许可证
 

@@ -6,11 +6,39 @@ import {
 }
 
 // Values
+pub fn admit_all() -> (String) -> Bool
+
+pub fn admit_allowlist(allow~ : Array[String]) -> (String) -> Bool
+
+pub fn admit_none() -> (String) -> Bool
+
+pub fn audit_collector(log~ : Array[String]) -> (@moongrd.AuditEvent) -> Unit
+
+pub fn audit_println() -> (@moongrd.AuditEvent) -> Unit
+
+pub fn audit_silent() -> (@moongrd.AuditEvent) -> Unit
+
+pub fn dispatch_echo(prefix~ : String) -> (String, Json) -> Json
+
 pub fn mount(config~ : @moongrd.GuardConfig, signer~ : &@moongrd.Signer, revocations~ : &@moongrd.RevocationStore, handler~ : &DoorHandler) -> @moongrd.Guard[String, Json, Json]
 
 // Errors
 
 // Types and methods
+pub(all) struct FlexDoor {
+  mut admit_fn : (String) -> Bool
+  mut dispatch_fn : (String, Json) -> Json
+  mut audit_fn : (@moongrd.AuditEvent) -> Unit
+}
+pub async fn FlexDoor::admit(Self, String) -> Bool
+pub async fn FlexDoor::audit(Self, @moongrd.AuditEvent) -> Unit
+pub fn FlexDoor::demo(allow~ : Array[String], prefix~ : String) -> Self
+pub async fn FlexDoor::dispatch(Self, String, Json) -> Json
+pub fn FlexDoor::new(admit_fn~ : (String) -> Bool, dispatch_fn~ : (String, Json) -> Json, audit_fn~ : (@moongrd.AuditEvent) -> Unit) -> Self
+pub fn FlexDoor::swap_admit(Self, admit~ : (String) -> Bool) -> Unit
+pub fn FlexDoor::swap_audit(Self, audit~ : (@moongrd.AuditEvent) -> Unit) -> Unit
+pub fn FlexDoor::swap_dispatch(Self, dispatch~ : (String, Json) -> Json) -> Unit
+pub impl DoorHandler for FlexDoor
 
 // Type aliases
 

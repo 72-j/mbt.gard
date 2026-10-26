@@ -130,3 +130,33 @@ async test "handler 方言:坏票 verify 拒,单行拒因 malformed" {
   assert_eq(door_log.length(), 1)
   assert_eq(door_log[0], "verify:false")
 }
+
+///|
+async test "handler 方言:demo 预设一键起门(名单+回声+上屏)" {
+  let handler = @handler.FlexDoor::demo(allow=["alice"], prefix="[p] ")
+  let door = @handler.mount(
+    config=hd_config(),
+    signer=hd_signer(),
+    revocations=@memstore.MemRevocationStore::new(),
+    handler~,
+  )
+  let alice = @moongrd.issue(
+    hd_config(),
+    hd_signer(),
+    1000000L,
+    "alice",
+    @moongrd.TokenType::Access,
+    "jti-hd1",
+  )
+  assert_true(door.run(1000000L, alice.token, Json::string("x")) is Ok(_))
+  let bob = @moongrd.issue(
+    hd_config(),
+    hd_signer(),
+    1000000L,
+    "bob",
+    @moongrd.TokenType::Access,
+    "jti-hd2",
+  )
+  let out = door.run(1000000L, bob.token, Json::string("x"))
+  assert_true(out is Err(@moongrd.GuardErr::Unresolved("bob")))
+}

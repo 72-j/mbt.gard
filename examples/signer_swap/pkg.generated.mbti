@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "thy1016/moongrd/examples/signer_swap"
+
+// Values
+
+// Errors
+
+// Types and methods
+type CmacAesSigner
+
+type Ed25519Signer
+
+type HmacSha512Signer
+
+// Type aliases
+
+// Traits

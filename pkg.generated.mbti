@@ -116,6 +116,7 @@ pub fn Refreshed::to_repr(Self) -> @debug.Repr
 pub struct TokenProtocol {
 }
 pub fn TokenProtocol::new() -> Self
+pub async fn TokenProtocol::verify_access(Self, config~ : GuardConfig, signer~ : &Signer, now~ : Int64, token~ : String) -> Result[Claims, VerifyErr]
 pub impl AuthProtocol for TokenProtocol
 
 pub(all) enum TokenType {

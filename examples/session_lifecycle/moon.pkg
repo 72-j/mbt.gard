@@ -4,6 +4,4 @@ import {
   "thy1016/moongrd/memstore",
 }
 
-options(
-  "is-main": true,
-)
+pkgtype(kind: "executable")

@@ -220,3 +220,38 @@ async test "G2 协议换挡:自定义 AuthProtocol 万能票进门,管线四行�
   // 协议位只换 verify 算法,管线序不换:四行审计照走
   assert_eq(g2_log.events.length(), 4)
 }
+
+///|
+async test "G2 drift 自定义:漂移窗随配置移动" {
+  let signer = g1_signer()
+  let strict : @moongrd.GuardConfig = @moongrd.GuardConfig::make(
+    issuer="iss1",
+    audience="aud1",
+    access_ttl_ms=60000L,
+    refresh_ttl_ms=600000L,
+  )
+  let issued = @moongrd.issue(
+    strict,
+    signer,
+    1000000L,
+    "alice",
+    @moongrd.TokenType::Access,
+    "jti-d1",
+  )
+  // 默认 drift 5000:exp=1060000,1065001 起拒
+  assert_true(
+    @moongrd.verify(strict, signer, 1065001L, issued.token) is Err(Expired(_)),
+  )
+  // 自定义 drift 60000:同一票 1119999 仍收,1120001 拒
+  let loose : @moongrd.GuardConfig = {
+    issuer: "iss1",
+    audience: "aud1",
+    allowed_drift_ms: 60000L,
+    access_ttl_ms: 60000L,
+    refresh_ttl_ms: 600000L,
+  }
+  assert_true(@moongrd.verify(loose, signer, 1119999L, issued.token) is Ok(_))
+  assert_true(
+    @moongrd.verify(loose, signer, 1120001L, issued.token) is Err(Expired(_)),
+  )
+}
