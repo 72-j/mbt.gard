@@ -8,8 +8,40 @@ trait 后面(参考实现绑 mooncry,与 Guardian 委托 Joken 同构)。
 > 安全信道(PSK-CR 握手 / HKDF / AEAD seq-IV / 滑窗防重放)不属于本框架——
 > 那是 TLS 层的活,住传输侧(moonkcp `secchan`,另役)。本框架的 token 走信道传。
 
-**状态**:G0 骨架在工(token 核 + 扩展面 trait;绿门待复跑)。
-路线:G0 骨架(token 核)→ G1 旋转 + 重放检测 → G2 四段管线 → G3 mooncry 绑定 + 教程。
+**状态**:v0.1.0——路线 G0(token 核)→ G1(旋转+重放检测)→ G2(四段管线)
+→ G3(mooncry 绑定)全线走完;32 罐绿;四个可运行示例;设计卷/规格卷在册
+(`spec.md` 演进锚)。0.x 实验期:API 仍可能随反馈调整。
+
+## 安装
+
+```bash
+moon add thy1016/moongrd
+```
+
+或直接以 gitlink 仓为依赖:`https://gitlink.org.cn/thy7/mbt.grd`。
+核心包零外部依赖;`adapter/mooncry`(真加密面)按需引,自带
+`cc06b/mooncry` 依赖。
+
+## 特性总览
+
+- **token 核**:access/refresh 双 token,HMAC 签名线形(定序 JSON +
+  base64url),校验/带门校验/换发三式纯函数,时间与熵全参数注入。
+- **旋转语义**:refresh 一次性作废,已用票再现 = 重放,自动撤全族。
+- **四段门**:verify → revocation → resolve → dispatch,段段审计、
+  拒绝短路带拒因;三姿势任选(回调方言 / 标签钩子 / 泛型全权)。
+- **四个换挡位**(全 trait):算法 Signer、AEAD Cipher、存储
+  RefreshStore/RevocationStore、认证协议 AuthProtocol——新实现 = 新
+  impl,框架零改。
+- **stock 预制 + 一键换装**:名单准入/回声派工/审计三形现成,
+  FlexDoor `swap_*` 运行时热换(紧急停门一行)。
+
+## 已知边界(0.x)
+
+- 记录层/secchan 钉 AES-GCM(ChaCha20 换挡 = RecordCipher trait 位,
+  需求触发);rekey 留接口未实现。
+- Ed25519 Signer 备位未落(需求触发)。
+- 0.x 实验期:未经独立安全审计,公网部署请配合信道层 PFS(Noise
+  IKpsk2,见 spec §五)并自行评审。
 
 ## 五分钟上手(D-G8 教程律:示例内嵌可跑形,真源 = 各 _test.mbt)
 
