@@ -17,6 +17,17 @@ pub fn verify_for(GuardConfig, &Signer, Int64, String, TokenType) -> Result[Clai
 // Errors
 
 // Types and methods
+pub(all) struct AuditEvent {
+  stage : String
+  sub : String
+  jti : String
+  ok : Bool
+  detail : String
+} derive(Eq, @debug.Debug)
+pub fn AuditEvent::equal(Self, Self) -> Bool
+pub fn AuditEvent::not_equal(Self, Self) -> Bool
+pub fn AuditEvent::to_repr(Self) -> @debug.Repr
+
 pub(all) struct Claims {
   sub : String
   iss : String
@@ -30,6 +41,17 @@ pub fn Claims::equal(Self, Self) -> Bool
 pub fn Claims::not_equal(Self, Self) -> Bool
 pub fn Claims::to_repr(Self) -> @debug.Repr
 
+pub(all) struct Guard[TSubj, TReq, TResp] {
+  config : GuardConfig
+  signer : &Signer
+  revocations : &RevocationStore
+  resolve : async (String) -> TSubj?
+  dispatch : async (TSubj, TReq) -> TResp
+  audit : async (AuditEvent) -> Unit
+}
+pub fn[TSubj, TReq, TResp] Guard::new(GuardConfig, &Signer, &RevocationStore, async (String) -> TSubj?, async (TSubj, TReq) -> TResp, async (AuditEvent) -> Unit) -> Self[TSubj, TReq, TResp]
+pub async fn[TSubj, TReq, TResp] Guard::run(Self[TSubj, TReq, TResp], Int64, String, TReq) -> Result[TResp, GuardErr]
+
 pub(all) struct GuardConfig {
   issuer : String
   audience : String
@@ -41,6 +63,15 @@ pub fn GuardConfig::equal(Self, Self) -> Bool
 pub fn GuardConfig::make(String, String, Int64, Int64) -> Self
 pub fn GuardConfig::not_equal(Self, Self) -> Bool
 pub fn GuardConfig::to_repr(Self) -> @debug.Repr
+
+pub(all) enum GuardErr {
+  Verify(VerifyErr)
+  Revoked
+  Unresolved(String)
+} derive(Eq, @debug.Debug)
+pub fn GuardErr::equal(Self, Self) -> Bool
+pub fn GuardErr::not_equal(Self, Self) -> Bool
+pub fn GuardErr::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Issued {
   token : String
@@ -56,6 +87,9 @@ pub(all) enum RefreshErr {
   Replayed(String)
   Revoked(Claims)
 } derive(Eq, @debug.Debug)
+pub fn RefreshErr::equal(Self, Self) -> Bool
+pub fn RefreshErr::not_equal(Self, Self) -> Bool
+pub fn RefreshErr::to_repr(Self) -> @debug.Repr
 
 pub(all) struct RefreshRecord {
   family_id : String
@@ -74,6 +108,9 @@ pub(all) struct Refreshed {
   family_id : String
   sub : String
 } derive(Eq, @debug.Debug)
+pub fn Refreshed::equal(Self, Self) -> Bool
+pub fn Refreshed::not_equal(Self, Self) -> Bool
+pub fn Refreshed::to_repr(Self) -> @debug.Repr
 
 pub(all) enum TokenType {
   Access

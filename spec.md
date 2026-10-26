@@ -55,6 +55,7 @@ adapter(D-G6 同构)——YAGNI,不预铺。
 | 线形格式 | 定序 JSON + base64url | JWT / COSE / 二进制 | token 对消费方是黑盒 String |
 | 签名算法 | 未定(G3) | HMAC ↔ Ed25519 ↔ 后量子 | `Signer` trait 签名即接口 |
 | 存储 | G1 memstore 已落(族谱+吊销表+sweep) | CouchDB / redis 按 trait 自带 | `RefreshStore`/`RevocationStore` trait |
+| **管线** | **G2 runner 已落**(Guard[TSubj,TReq,TResp] 四段:verify→revocation→resolve→dispatch,段段审计;钩子匿名 async fn 字面量可内联) | 段增删/审计分流 | 段间纯值;校验序框架私产;拒绝短路带原因 |
 | 信道 | 外置 | moonkcp secchan(PSK-CR+HKDF+AEAD) | 信道永不在本仓 |
 | 口令拉伸 | 框架外 | `PasswordHasher` trait(触发才立) | 慢哈希不进校验路 |
-| hooks 异步色 | async fn 型零 import;async trait 声明语法已证(D-G12 案 A) | G2 runner 实练 async impl | 核心零依赖 |
+| hooks 异步色 | async fn 型零 import;async trait 声明语法已证(D-G12 案 A) | async impl 实练(G2 runner 已用 async 字面量钩子) | 核心零依赖 |

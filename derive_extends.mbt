@@ -48,3 +48,15 @@ pub extend Refreshed with Eq::{not_equal, equal}
 
 ///|
 pub extend Refreshed with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend GuardErr with Eq::{not_equal, equal}
+
+///|
+pub extend GuardErr with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend AuditEvent with Eq::{not_equal, equal}
+
+///|
+pub extend AuditEvent with @moonbitlang/core/debug.Debug::{to_repr}

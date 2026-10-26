@@ -13,7 +13,11 @@ import {
 pub(all) struct MemRefreshStore {
   mut table : Map[String, @moongrd.RefreshRecord]
 }
+pub fn MemRefreshStore::get(Self, String) -> @moongrd.RefreshRecord?
+pub fn MemRefreshStore::mark_used(Self, String) -> Unit
 pub fn MemRefreshStore::new() -> Self
+pub fn MemRefreshStore::put(Self, String, @moongrd.RefreshRecord) -> Unit
+pub fn MemRefreshStore::revoke_family(Self, String) -> Unit
 pub fn MemRefreshStore::sweep(Self, Int64) -> Int32
 pub impl @moongrd.RefreshStore for MemRefreshStore
 
@@ -21,6 +25,8 @@ pub(all) struct MemRevocationStore {
   mut tomb : Map[String, Bool]
 }
 pub fn MemRevocationStore::new() -> Self
+pub fn MemRevocationStore::revoke(Self, String) -> Unit
+pub fn MemRevocationStore::revoked(Self, String) -> Bool
 pub impl @moongrd.RevocationStore for MemRevocationStore
 
 // Type aliases

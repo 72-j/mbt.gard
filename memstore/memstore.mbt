@@ -123,7 +123,12 @@ pub impl @moongrd.RevocationStore for MemRevocationStore with fn revoked(
 
 ///|
 /// trait 方法显式晋升([0079] 标准动作)。
-pub extend MemRefreshStore with @moongrd.RefreshStore::{revoke_family, put, get, mark_used}
+pub extend MemRefreshStore with @moongrd.RefreshStore::{
+  revoke_family,
+  put,
+  get,
+  mark_used,
+}
 
 ///|
 pub extend MemRevocationStore with @moongrd.RevocationStore::{revoked, revoke}

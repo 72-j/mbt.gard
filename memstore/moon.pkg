@@ -1,6 +1,8 @@
 import {
   "thy1016/moongrd",
 }
+
 import {
+  "moonbitlang/async",
   "moonbitlang/core/encoding/utf8",
 } for "test"
