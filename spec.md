@@ -53,7 +53,7 @@ adapter(D-G6 同构)——YAGNI,不预铺。
 | 维度 | 现状 | 升级形 | 不变式 |
 |---|---|---|---|
 | 线形格式 | 定序 JSON + base64url | JWT / COSE / 二进制 | token 对消费方是黑盒 String |
-| 签名算法 | 未定(G3) | HMAC ↔ Ed25519 ↔ 后量子 | `Signer` trait 签名即接口 |
+| 签名算法 | **G3 已落:HMAC-SHA256**(adapter/mooncry,RFC 4231 KAT 过 trait)+ AES-GCM Cipher | Ed25519(非对称验签分发形)↔ 后量子 | `Signer` trait 签名即接口 |
 | 存储 | G1 memstore 已落(族谱+吊销表+sweep) | CouchDB / redis 按 trait 自带 | `RefreshStore`/`RevocationStore` trait |
 | **管线** | **G2 runner 已落**(Guard[TSubj,TReq,TResp] 四段:verify→revocation→resolve→dispatch,段段审计;钩子匿名 async fn 字面量可内联) | 段增删/审计分流 | 段间纯值;校验序框架私产;拒绝短路带原因 |
 | 信道 | 外置 | moonkcp secchan(PSK-CR+HKDF+AEAD) | 信道永不在本仓 |

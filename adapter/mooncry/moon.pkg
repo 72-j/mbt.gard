@@ -1,0 +1,7 @@
+import {
+  "cc06b/mooncry/lib",
+  "thy1016/moongrd",
+}
+import {
+  "moonbitlang/core/encoding/utf8",
+} for "test"
