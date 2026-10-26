@@ -23,6 +23,11 @@ access 过期 → refresh 换发续命 → 登出吊销,五幕讲完一个会话
 **回调方言**:`moon run examples/handler_demo`——实现三个具名回调 +
 一句 mount,初级用户视角的三幕剧(放行/陌生人拒/伪造拒)。
 
+**一键换装**:`style/handler` 内置预制回调库(名单准入/全放全拒/回声
+派工/上屏·吞流·收集审计)+ `FlexDoor`(三回调函数位 + `swap_admit`/
+`swap_dispatch`/`swap_audit` 运行时一键换装——紧急停门 =
+`door_handler.swap_admit(admit=admit_none())`,已挂门即时生效)。
+
 **换 verify 算法**:`moon run examples/signer_swap`——同一管线,HMAC-SHA512 /
 AES-CMAC / Ed25519 三位签名者三换三绿;交叉核验全拒演示"算法不换算"。
 
