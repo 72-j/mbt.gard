@@ -23,6 +23,9 @@ access 过期 → refresh 换发续命 → 登出吊销,五幕讲完一个会话
 **回调方言**:`moon run examples/handler_demo`——实现三个具名回调 +
 一句 mount,初级用户视角的三幕剧(放行/陌生人拒/伪造拒)。
 
+**换 verify 算法**:`moon run examples/signer_swap`——同一管线,HMAC-SHA512 /
+AES-CMAC / Ed25519 三位签名者三换三绿;交叉核验全拒演示"算法不换算"。
+
 ### 1 签发与校验(纯函数;时间/熵全参数注入)
 
 ```moonbit
