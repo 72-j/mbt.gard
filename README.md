@@ -41,28 +41,34 @@ match @moongrd.refresh(config, signer, store, now, refresh_token, next_jti) {
 }
 ```
 
-### 3 四段门(Guard 单构造点;钩子全 async)
+### 3 四段门(三种姿势,按手感选)
 
-初级形——全标签实参,audit 可省(省略 = 吞流,进阶再挂):
+**最简形(回调方言,`style/handler`)**——实现三个具名回调,mount 即得
+一门;主体即 sub,req/resp 走 Json,全程不写 async:
+
+```moonbit
+pub impl DoorHandler for MyDoor with admit(self : MyDoor, sub : String) -> Bool { ... }
+pub impl DoorHandler for MyDoor with dispatch(self : MyDoor, sub : String, req : Json) -> Json { ... }
+pub impl DoorHandler for MyDoor with audit(self : MyDoor, e : @moongrd.AuditEvent) -> Unit { ... }
+
+let door = @handler.mount(config=config, signer=signer,
+                          revocations=revocations, handler=my_door)
+let resp = door.run(now, access_token, req)
+```
+
+**中级形(标签钩子)**——audit 可省(省略 = 吞流,进阶再挂):
 
 ```moonbit
 let door = @moongrd.Guard::new(
   config=config, signer=signer, revocations=revocations,
-  resolve=async fn(sub : String) -> User? { ... },      // sub → 主体
+  resolve=async fn(sub : String) -> User? { ... },        // sub → 主体
   dispatch=async fn(u : User, req : Req) -> Resp { ... }, // 业务到达
 )
-let resp = door.run(now, access_token, request)
 ```
 
-进阶形——挂审计(每段落一行事件,fail 短路带拒因):
-
-```moonbit
-let door = @moongrd.Guard::new(
-  config=config, signer=signer, revocations=revocations,
-  resolve=..., dispatch=...,
-  audit=async fn(e : @moongrd.AuditEvent) -> Unit { ... },  // 不可失败
-)
-```
+**进阶形(挂审计)**——每段落一行事件,fail 短路带拒因;泛型全权
+(任意主体/进出型)同门加 `audit=` 即得。四段语义三者同一:
+verify → revocation → resolve → dispatch。
 
 ### 4 真加密面(adapter/mooncry)
 

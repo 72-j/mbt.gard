@@ -1,0 +1,22 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "thy1016/moongrd/style/handler"
+
+import {
+  "thy1016/moongrd",
+}
+
+// Values
+pub fn mount(config~ : @moongrd.GuardConfig, signer~ : &@moongrd.Signer, revocations~ : &@moongrd.RevocationStore, handler~ : &DoorHandler) -> @moongrd.Guard[String, Json, Json]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+pub(open) trait DoorHandler {
+  async fn admit(Self, String) -> Bool
+  async fn dispatch(Self, String, Json) -> Json
+  async fn audit(Self, @moongrd.AuditEvent) -> Unit
+}

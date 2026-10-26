@@ -49,7 +49,7 @@ pub(all) struct Guard[TSubj, TReq, TResp] {
   dispatch : async (TSubj, TReq) -> TResp
   audit : async (AuditEvent) -> Unit
 }
-pub fn[TSubj, TReq, TResp] Guard::new(GuardConfig, &Signer, &RevocationStore, async (String) -> TSubj?, async (TSubj, TReq) -> TResp, async (AuditEvent) -> Unit) -> Self[TSubj, TReq, TResp]
+pub fn[TSubj, TReq, TResp] Guard::new(config~ : GuardConfig, signer~ : &Signer, revocations~ : &RevocationStore, resolve~ : async (String) -> TSubj?, dispatch~ : async (TSubj, TReq) -> TResp, audit? : async (AuditEvent) -> Unit) -> Self[TSubj, TReq, TResp]
 pub async fn[TSubj, TReq, TResp] Guard::run(Self[TSubj, TReq, TResp], Int64, String, TReq) -> Result[TResp, GuardErr]
 
 pub(all) struct GuardConfig {
