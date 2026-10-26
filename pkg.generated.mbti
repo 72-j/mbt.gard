@@ -60,7 +60,7 @@ pub(all) struct GuardConfig {
   refresh_ttl_ms : Int64
 } derive(Eq, @debug.Debug)
 pub fn GuardConfig::equal(Self, Self) -> Bool
-pub fn GuardConfig::make(String, String, Int64, Int64) -> Self
+pub fn GuardConfig::make(issuer~ : String, audience~ : String, access_ttl_ms~ : Int64, refresh_ttl_ms~ : Int64) -> Self
 pub fn GuardConfig::not_equal(Self, Self) -> Bool
 pub fn GuardConfig::to_repr(Self) -> @debug.Repr
 

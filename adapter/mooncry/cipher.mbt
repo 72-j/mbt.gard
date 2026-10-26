@@ -10,11 +10,11 @@ pub struct AesGcmCipher {
 
 ///|
 pub fn AesGcmCipher::new(key : Bytes) -> AesGcmCipher {
-  { key: key, }
+  { key, }
 }
 
 ///|
-pub impl @moongrd.Cipher for AesGcmCipher with seal(
+pub impl @moongrd.Cipher for AesGcmCipher with fn seal(
   self,
   plaintext : Bytes,
   nonce : Bytes,
@@ -25,7 +25,7 @@ pub impl @moongrd.Cipher for AesGcmCipher with seal(
 }
 
 ///|
-pub impl @moongrd.Cipher for AesGcmCipher with open(
+pub impl @moongrd.Cipher for AesGcmCipher with fn open(
   self,
   ciphertext : Bytes,
   nonce : Bytes,

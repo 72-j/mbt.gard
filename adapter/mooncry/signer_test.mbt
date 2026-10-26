@@ -20,7 +20,12 @@ test "G3 HMAC-SHA256 RFC 4231 KAT 过 Signer trait" {
 
 ///|
 test "G3 真签发回环:issue→verify,篡改即 BadMac" {
-  let config = @moongrd.GuardConfig::make("iss1", "aud1", 60000L, 600000L)
+  let config = @moongrd.GuardConfig::make(
+    issuer="iss1",
+    audience="aud1",
+    access_ttl_ms=60000L,
+    refresh_ttl_ms=600000L,
+  )
   let signer : &@moongrd.Signer = @mooncry.HmacSha256Signer::new(g3_key)
   let issued = @moongrd.issue(
     config,
@@ -30,7 +35,14 @@ test "G3 真签发回环:issue→verify,篡改即 BadMac" {
     @moongrd.TokenType::Access,
     "jti-real-1",
   )
-  match @moongrd.verify_for(config, signer, 1000000L, issued.token, @moongrd.TokenType::Access) {
+  match
+    @moongrd.verify_for(
+      config,
+      signer,
+      1000000L,
+      issued.token,
+      @moongrd.TokenType::Access,
+    ) {
     Ok(c) => assert_eq(c.sub, "alice")
     Err(_) => abort("真签回环应绿")
   }
@@ -39,9 +51,8 @@ test "G3 真签发回环:issue→verify,篡改即 BadMac" {
   let n = issued.token.length()
   let tampered = "f" + issued.token[1:n].to_owned()
   assert_true(
-    @moongrd.verify(config, signer, 1000000L, tampered) is Err(
-      @moongrd.VerifyErr::BadMac,
-    ),
+    @moongrd.verify(config, signer, 1000000L, tampered)
+    is Err(@moongrd.VerifyErr::BadMac),
   )
 }
 
@@ -52,11 +63,18 @@ test "G3 AES-GCM 过 Cipher trait:回环/撕尾拒/篡改拒" {
   let aad = @utf8.encode("door:admin")
   let envelope = cipher.seal(@utf8.encode("open sesame"), nonce, aad)
   match cipher.open(envelope, nonce, aad) {
-    Some(pt) => assert_eq(@lib.bytes_to_hex(pt), @lib.bytes_to_hex(@utf8.encode("open sesame")))
+    Some(pt) =>
+      assert_eq(
+        @lib.bytes_to_hex(pt),
+        @lib.bytes_to_hex(@utf8.encode("open sesame")),
+      )
     None => abort("GCM 回环应绿")
   }
   // 撕尾(tag 不足 16B)→ None
-  assert_true(cipher.open(envelope[0:envelope.length() - 1].to_owned(), nonce, aad) is None)
+  assert_true(
+    cipher.open(envelope[0:envelope.length() - 1].to_owned(), nonce, aad)
+    is None,
+  )
   // 篡改 ct 首字节 → None(认证失败统一 None,无 oracle)
   let broken = Bytes::makei(envelope.length(), fn(i) {
     if i == 0 {

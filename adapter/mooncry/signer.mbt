@@ -9,11 +9,11 @@ pub struct HmacSha256Signer {
 
 ///|
 pub fn HmacSha256Signer::new(key : Bytes) -> HmacSha256Signer {
-  { key: key, }
+  { key, }
 }
 
 ///|
-pub impl @moongrd.Signer for HmacSha256Signer with sign(
+pub impl @moongrd.Signer for HmacSha256Signer with fn sign(
   self,
   payload : Bytes,
 ) -> Bytes {
@@ -21,7 +21,7 @@ pub impl @moongrd.Signer for HmacSha256Signer with sign(
 }
 
 ///|
-pub impl @moongrd.Signer for HmacSha256Signer with verify(
+pub impl @moongrd.Signer for HmacSha256Signer with fn verify(
   self,
   payload : Bytes,
   mac : Bytes,

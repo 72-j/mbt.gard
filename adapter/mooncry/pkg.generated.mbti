@@ -1,0 +1,31 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "thy1016/moongrd/adapter/mooncry"
+
+import {
+  "thy1016/moongrd",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct AesGcmCipher {
+  key : Bytes
+}
+pub fn AesGcmCipher::new(Bytes) -> Self
+pub fn AesGcmCipher::open(Self, Bytes, Bytes, Bytes) -> Bytes?
+pub fn AesGcmCipher::seal(Self, Bytes, Bytes, Bytes) -> Bytes
+pub impl @moongrd.Cipher for AesGcmCipher
+
+pub struct HmacSha256Signer {
+  key : Bytes
+}
+pub fn HmacSha256Signer::new(Bytes) -> Self
+pub fn HmacSha256Signer::sign(Self, Bytes) -> Bytes
+pub fn HmacSha256Signer::verify(Self, Bytes, Bytes) -> Bool
+pub impl @moongrd.Signer for HmacSha256Signer
+
+// Type aliases
+
+// Traits

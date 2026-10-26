@@ -12,11 +12,12 @@ pub(all) struct GuardConfig {
 
 ///|
 /// 默认形:allowed_drift 5000ms(D-AUTH8/D-G5);TTL 由消费方给。
+/// 标签实参形——调用点自述每个参数的身份。
 pub fn GuardConfig::make(
-  issuer : String,
-  audience : String,
-  access_ttl_ms : Int64,
-  refresh_ttl_ms : Int64,
+  issuer~ : String,
+  audience~ : String,
+  access_ttl_ms~ : Int64,
+  refresh_ttl_ms~ : Int64,
 ) -> GuardConfig {
   { issuer, audience, allowed_drift_ms: 5000L, access_ttl_ms, refresh_ttl_ms, }
 }

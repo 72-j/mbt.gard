@@ -32,7 +32,12 @@ impl Signer for ToySigner with fn verify(self, payload, mac) -> Bool {
 
 ///|
 fn g0_config() -> GuardConfig {
-  GuardConfig::make("iss1", "aud1", 60000L, 600000L)
+  GuardConfig::make(
+    issuer="iss1",
+    audience="aud1",
+    access_ttl_ms=60000L,
+    refresh_ttl_ms=600000L,
+  )
 }
 
 ///|
@@ -166,11 +171,21 @@ test "G0 iss/aud 错拒" {
     TokenType::Access,
     "jti-5",
   )
-  let wrong_iss = GuardConfig::make("other", "aud1", 60000L, 600000L)
+  let wrong_iss = GuardConfig::make(
+    issuer="other",
+    audience="aud1",
+    access_ttl_ms=60000L,
+    refresh_ttl_ms=600000L,
+  )
   assert_true(
     verify(wrong_iss, signer, 1000000L, issued.token) is Err(WrongIssuer(_)),
   )
-  let wrong_aud = GuardConfig::make("iss1", "other", 60000L, 600000L)
+  let wrong_aud = GuardConfig::make(
+    issuer="iss1",
+    audience="other",
+    access_ttl_ms=60000L,
+    refresh_ttl_ms=600000L,
+  )
   assert_true(
     verify(wrong_aud, signer, 1000000L, issued.token) is Err(WrongAudience(_)),
   )

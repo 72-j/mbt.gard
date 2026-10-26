@@ -6,10 +6,10 @@
 ///|
 async fn main {
   let config = @moongrd.GuardConfig::make(
-    "demo-iss",
-    "demo-aud",
-    60000L,
-    600000L,
+    issuer="demo-iss",
+    audience="demo-aud",
+    access_ttl_ms=60000L,
+    refresh_ttl_ms=600000L,
   )
   let signer : &@moongrd.Signer = @mooncry.HmacSha256Signer::new(
     Bytes::make(32, b'\x11'),
@@ -70,7 +70,8 @@ async fn main {
   println("")
   println("== 3 换发:旧票作废,新票入族 ==")
   let mut latest = refresh.token
-  match @moongrd.refresh(config, signer, store, 3000L, refresh.token, "jti-r2") {
+  match
+    @moongrd.refresh(config, signer, store, 3000L, refresh.token, "jti-r2") {
     Ok(r) => {
       latest = r.refresh.token
       println("新 refresh 入族 \{r.family_id}(旧票 jti-r1 已标 used)")
@@ -79,7 +80,8 @@ async fn main {
   }
   println("")
   println("== 4 重放:已用旧票再现 → 撤全族 ==")
-  match @moongrd.refresh(config, signer, store, 4000L, refresh.token, "jti-r3") {
+  match
+    @moongrd.refresh(config, signer, store, 4000L, refresh.token, "jti-r3") {
     Err(@moongrd.RefreshErr::Replayed(family)) =>
       println("重放戳穿!族 \{family} 已全族作废")
     Err(e) => println("意外 → \{e.to_repr()}")
@@ -98,7 +100,8 @@ async fn main {
   let n = access.token.length()
   let tampered = "f" + access.token[1:n].to_owned()
   match @moongrd.verify(config, signer, 2000L, tampered) {
-    Err(@moongrd.VerifyErr::BadMac) => println("BadMac 戳穿,拒绝不带载荷")
+    Err(@moongrd.VerifyErr::BadMac) =>
+      println("BadMac 戳穿,拒绝不带载荷")
     Err(e) => println("意外 → \{e.to_repr()}")
     Ok(_) => println("?!篡改竟通过")
   }
