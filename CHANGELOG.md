@@ -3,6 +3,15 @@
 本文件记录 MoonGrd 的显著变更。格式参照 Keep a Changelog;
 版本遵循语义化版本(0.x 为实验期,API 仍可能随反馈调整)。
 
+## 0.1.1（2026-10-26）
+
+### Changed
+
+- **audit 槽 Option 化**:`Guard.audit` 型由 `async (AuditEvent) ->
+  Unit` 改 `(async (AuditEvent) -> Unit)?`——省略 audit 即 `None`
+  吞流(D-G11 合法沉没改缺席表示),不再构造空 async 函数;
+  `Guard::new` 签名不变,经构造点消费的面无感。
+
 ## 0.1.0（2026-10-26）
 
 首个公开版本:Guardian 式认证管道框架,token 核 / 旋转 / 四段管线 /
