@@ -1,6 +1,6 @@
 # 05 · 五换挡位与 adapter 编写
 
-moongrd 有五个 trait 换挡位。判据一条:**部署期换算法/实现 → trait;
+moongard 有五个 trait 换挡位。判据一条:**部署期换算法/实现 → trait;
 运行期换行为 → 回调;调数值 → 字段;安全语义 → 钉死**(柔性规程
 D-G20)。
 
@@ -22,12 +22,12 @@ struct Ed25519Signer {
 }
 
 ///|
-impl @moongrd.Signer for Ed25519Signer with sign(self, payload) -> Bytes {
+impl @moongard.Signer for Ed25519Signer with sign(self, payload) -> Bytes {
   @lib.ed25519_sign(self.seed, payload)
 }
 
 ///|
-impl @moongrd.Signer for Ed25519Signer with verify(self, payload, mac) -> Bool {
+impl @moongard.Signer for Ed25519Signer with verify(self, payload, mac) -> Bool {
   @lib.ed25519_verify(self.public, payload, mac)
 }
 ```
@@ -48,7 +48,7 @@ struct ChaChaCipher {
 }
 
 ///|
-impl @moongrd.Cipher for ChaChaCipher with seal(
+impl @moongard.Cipher for ChaChaCipher with seal(
   self, plaintext : Bytes, nonce : Bytes, aad : Bytes,
 ) -> Bytes {
   // ct ‖ tag 线形自定,open 对称撕开
@@ -56,7 +56,7 @@ impl @moongrd.Cipher for ChaChaCipher with seal(
 }
 
 ///|
-impl @moongrd.Cipher for ChaChaCipher with open(
+impl @moongard.Cipher for ChaChaCipher with open(
   self, ciphertext : Bytes, nonce : Bytes, aad : Bytes,
 ) -> Bytes? {
   ... // 验签失败返回 None,不抛不 abort
@@ -67,8 +67,8 @@ impl @moongrd.Cipher for ChaChaCipher with open(
 
 ```moonbit
 ///|
-pub impl @moongrd.RefreshStore for CouchStore with put(
-  self, jti : String, record : @moongrd.RefreshRecord,
+pub impl @moongard.RefreshStore for CouchStore with put(
+  self, jti : String, record : @moongard.RefreshRecord,
 ) -> Unit {
   // 异步库:内部写队列,daemon 泵消费(存储位保持同步色)
   ...
@@ -96,7 +96,7 @@ PBKDF2/Argon2 是口令拉伸器,**永不进 token 校验路**(校验高频,快�
 所有换挡位都是 `Guard` / `mount` 的构造参数:
 
 ```moonbit
-let door = @moongrd.Guard::new(
+let door = @moongard.Guard::new(
   config=config,
   signer=my_ed25519_signer,     // 换算法
   revocations=my_couch_store,   // 换存储

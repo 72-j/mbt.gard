@@ -1,9 +1,9 @@
 import {
-  "thy1016/moongrd",
+  "thy1016/moongard",
 }
 
 import {
-  "thy1016/moongrd/adapter/mooncry",
-  "thy1016/moongrd/memstore",
+  "thy1016/moongard/adapter/mooncry",
+  "thy1016/moongard/memstore",
   "moonbitlang/async",
 } for "test"

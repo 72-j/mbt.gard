@@ -40,22 +40,22 @@ pub fn dispatch_echo(prefix~ : String) -> (String, Json) -> Json {
 
 ///|
 /// 审计上屏(控制台)。
-pub fn audit_println() -> (@moongrd.AuditEvent) -> Unit {
-  fn(e : @moongrd.AuditEvent) -> Unit {
+pub fn audit_println() -> (@moongard.AuditEvent) -> Unit {
+  fn(e : @moongard.AuditEvent) -> Unit {
     println("[audit] \{e.stage} ok=\{e.ok} \{e.detail}")
   }
 }
 
 ///|
 /// 审计吞流(D-G11 沉没形)。
-pub fn audit_silent() -> (@moongrd.AuditEvent) -> Unit {
-  fn(_e : @moongrd.AuditEvent) -> Unit { () }
+pub fn audit_silent() -> (@moongard.AuditEvent) -> Unit {
+  fn(_e : @moongard.AuditEvent) -> Unit { () }
 }
 
 ///|
 /// 审计收集:捕获行数组引用,消费方随时可读。
-pub fn audit_collector(log~ : Array[String]) -> (@moongrd.AuditEvent) -> Unit {
-  fn(e : @moongrd.AuditEvent) -> Unit { log.push("\{e.stage}:\{e.ok}") }
+pub fn audit_collector(log~ : Array[String]) -> (@moongard.AuditEvent) -> Unit {
+  fn(e : @moongard.AuditEvent) -> Unit { log.push("\{e.stage}:\{e.ok}") }
 }
 
 ///|
@@ -63,14 +63,14 @@ pub fn audit_collector(log~ : Array[String]) -> (@moongrd.AuditEvent) -> Unit {
 pub(all) struct FlexDoor {
   mut admit_fn : (String) -> Bool
   mut dispatch_fn : (String, Json) -> Json
-  mut audit_fn : (@moongrd.AuditEvent) -> Unit
+  mut audit_fn : (@moongard.AuditEvent) -> Unit
 }
 
 ///|
 pub fn FlexDoor::new(
   admit_fn~ : (String) -> Bool,
   dispatch_fn~ : (String, Json) -> Json,
-  audit_fn~ : (@moongrd.AuditEvent) -> Unit,
+  audit_fn~ : (@moongard.AuditEvent) -> Unit,
 ) -> FlexDoor {
   { admit_fn, dispatch_fn, audit_fn, }
 }
@@ -104,7 +104,7 @@ pub fn FlexDoor::swap_dispatch(
 /// 一键换装:审计策略。
 pub fn FlexDoor::swap_audit(
   self : FlexDoor,
-  audit~ : (@moongrd.AuditEvent) -> Unit,
+  audit~ : (@moongard.AuditEvent) -> Unit,
 ) -> Unit {
   self.audit_fn = audit
 }
@@ -126,7 +126,7 @@ pub impl DoorHandler for FlexDoor with fn dispatch(
 ///|
 pub impl DoorHandler for FlexDoor with fn audit(
   self : FlexDoor,
-  e : @moongrd.AuditEvent,
+  e : @moongard.AuditEvent,
 ) -> Unit {
   (self.audit_fn)(e)
 }

@@ -19,13 +19,13 @@ base64url(定序 JSON 载荷) "." base64url(mac)
 
 ```moonbit
 // 签发:exp = now + (typ 对应的 ttl);jti 由你注入(CSPRNG)
-let issued = @moongrd.issue(config, signer, now, "alice", @moongrd.TokenType::Access, "jti-1")
+let issued = @moongard.issue(config, signer, now, "alice", @moongard.TokenType::Access, "jti-1")
 
 // 校验(任一 typ)
-let r = @moongrd.verify(config, signer, now, issued.token)
+let r = @moongard.verify(config, signer, now, issued.token)
 
 // 带门校验(业务门只收 access;refresh 门只收 refresh)
-let r2 = @moongrd.verify_for(config, signer, now, token, @moongrd.TokenType::Access)
+let r2 = @moongard.verify_for(config, signer, now, token, @moongard.TokenType::Access)
 ```
 
 ## 时间窗与 drift
@@ -34,7 +34,7 @@ let r2 = @moongrd.verify_for(config, signer, now, token, @moongrd.TokenType::Acc
 `allowed_drift = 5000ms`;时钟不同步的集群可放大:
 
 ```moonbit
-let loose : @moongrd.GuardConfig = {
+let loose : @moongard.GuardConfig = {
   issuer: "demo-iss", audience: "demo-app",
   allowed_drift_ms: 60000L,
   access_ttl_ms: 60000L, refresh_ttl_ms: 600000L,
@@ -47,12 +47,12 @@ access 短命、refresh 长命。access 过期后拿 refresh 换发,**旧 refres
 立即作废**,新 refresh 入同族:
 
 ```moonbit
-match @moongrd.refresh(config, signer, store, now, refresh_token, next_jti) {
+match @moongard.refresh(config, signer, store, now, refresh_token, next_jti) {
   Ok(r) => {
     // r.refresh:新 refresh 票(记得 store.put 入账由 refresh 内部完成)
     // access 用 issue(config, signer, now, r.sub, Access, 新 jti) 另发
   }
-  Err(@moongrd.RefreshErr::Verify(Expired(_))) => // refresh 也过期了:回握手重登录
+  Err(@moongard.RefreshErr::Verify(Expired(_))) => // refresh 也过期了:回握手重登录
   Err(e) => // 其他拒
 }
 ```
@@ -63,8 +63,8 @@ match @moongrd.refresh(config, signer, store, now, refresh_token, next_jti) {
 该族所有 refresh(含最新那张)一并作废:
 
 ```moonbit
-match @moongrd.refresh(config, signer, store, now, old_token, "jti-new") {
-  Err(@moongrd.RefreshErr::Replayed(family)) => println("族 \{family} 已全撤")
+match @moongard.refresh(config, signer, store, now, old_token, "jti-new") {
+  Err(@moongard.RefreshErr::Replayed(family)) => println("族 \{family} 已全撤")
   ...
 }
 ```

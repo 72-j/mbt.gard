@@ -4,7 +4,7 @@
 ///|
 /// refresh 族谱内存实现:jti → 记录。进程内单点用,无并发保证。
 pub(all) struct MemRefreshStore {
-  mut table : Map[String, @moongrd.RefreshRecord]
+  mut table : Map[String, @moongard.RefreshRecord]
 }
 
 ///|
@@ -13,28 +13,28 @@ pub fn MemRefreshStore::new() -> MemRefreshStore {
 }
 
 ///|
-pub impl @moongrd.RefreshStore for MemRefreshStore with fn put(
+pub impl @moongard.RefreshStore for MemRefreshStore with fn put(
   self,
   jti : String,
-  record : @moongrd.RefreshRecord,
+  record : @moongard.RefreshRecord,
 ) -> Unit {
   self.table[jti] = record
 }
 
 ///|
-pub impl @moongrd.RefreshStore for MemRefreshStore with fn get(
+pub impl @moongard.RefreshStore for MemRefreshStore with fn get(
   self,
   jti : String,
-) -> @moongrd.RefreshRecord? {
+) -> @moongard.RefreshRecord? {
   self.table.get(jti)
 }
 
 ///|
-pub impl @moongrd.RefreshStore for MemRefreshStore with fn mark_used(
+pub impl @moongard.RefreshStore for MemRefreshStore with fn mark_used(
   self,
   jti : String,
 ) -> Unit {
-  let updated : @moongrd.RefreshRecord? = match self.table.get(jti) {
+  let updated : @moongard.RefreshRecord? = match self.table.get(jti) {
     Some(r) =>
       Some({
         family_id: r.family_id,
@@ -53,11 +53,11 @@ pub impl @moongrd.RefreshStore for MemRefreshStore with fn mark_used(
 }
 
 ///|
-pub impl @moongrd.RefreshStore for MemRefreshStore with fn revoke_family(
+pub impl @moongard.RefreshStore for MemRefreshStore with fn revoke_family(
   self,
   family_id : String,
 ) -> Unit {
-  let hits : Array[(String, @moongrd.RefreshRecord)] = []
+  let hits : Array[(String, @moongard.RefreshRecord)] = []
   for jti, r in self.table {
     if r.family_id == family_id {
       hits.push((jti, r))
@@ -103,7 +103,7 @@ pub fn MemRevocationStore::new() -> MemRevocationStore {
 }
 
 ///|
-pub impl @moongrd.RevocationStore for MemRevocationStore with fn revoke(
+pub impl @moongard.RevocationStore for MemRevocationStore with fn revoke(
   self,
   jti : String,
 ) -> Unit {
@@ -111,7 +111,7 @@ pub impl @moongrd.RevocationStore for MemRevocationStore with fn revoke(
 }
 
 ///|
-pub impl @moongrd.RevocationStore for MemRevocationStore with fn revoked(
+pub impl @moongard.RevocationStore for MemRevocationStore with fn revoked(
   self,
   jti : String,
 ) -> Bool {
@@ -123,7 +123,7 @@ pub impl @moongrd.RevocationStore for MemRevocationStore with fn revoked(
 
 ///|
 /// trait 方法显式晋升([0079] 标准动作)。
-pub extend MemRefreshStore with @moongrd.RefreshStore::{
+pub extend MemRefreshStore with @moongard.RefreshStore::{
   revoke_family,
   put,
   get,
@@ -131,4 +131,4 @@ pub extend MemRefreshStore with @moongrd.RefreshStore::{
 }
 
 ///|
-pub extend MemRevocationStore with @moongrd.RevocationStore::{revoked, revoke}
+pub extend MemRevocationStore with @moongard.RevocationStore::{revoked, revoke}

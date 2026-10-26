@@ -1,40 +1,40 @@
-// main.mbt — moongrd 全链演示:登录 → 四段门 → 换发旋转 → 重放撤族 →
-// 族谱尽戮 → 篡改拒。运行:cd moongrd && moon run examples/walkthrough
+// main.mbt — moongard 全链演示:登录 → 四段门 → 换发旋转 → 重放撤族 →
+// 族谱尽戮 → 篡改拒。运行:cd moongard && moon run examples/walkthrough
 // 时间与熵全是常量注入(D-G2:核心零时钟零随机;生产换真钟 + CSPRNG,
 // 见 README §4:慢哈希拉伸口令、CSPRNG 供 nonce/jti)。
 
 ///|
 async fn main {
-  let config = @moongrd.GuardConfig::make(
+  let config = @moongard.GuardConfig::make(
     issuer="demo-iss",
     audience="demo-aud",
     access_ttl_ms=60000L,
     refresh_ttl_ms=600000L,
   )
-  let signer : &@moongrd.Signer = @mooncry.HmacSha256Signer::new(
+  let signer : &@moongard.Signer = @mooncry.HmacSha256Signer::new(
     Bytes::make(32, b'\x11'),
   )
   let family_store = @memstore.MemRefreshStore::new()
-  let store : &@moongrd.RefreshStore = family_store
-  let revocations : &@moongrd.RevocationStore = @memstore.MemRevocationStore::new()
+  let store : &@moongard.RefreshStore = family_store
+  let revocations : &@moongard.RevocationStore = @memstore.MemRevocationStore::new()
   println("== 1 登录:双 token 签发 ==")
-  let access = @moongrd.issue(
+  let access = @moongard.issue(
     config,
     signer,
     1000L,
     "alice",
-    @moongrd.TokenType::Access,
+    @moongard.TokenType::Access,
     "jti-a",
   )
-  let refresh = @moongrd.issue(
+  let refresh = @moongard.issue(
     config,
     signer,
     1000L,
     "alice",
-    @moongrd.TokenType::Refresh,
+    @moongard.TokenType::Refresh,
     "jti-r1",
   )
-  let record : @moongrd.RefreshRecord = {
+  let record : @moongard.RefreshRecord = {
     family_id: "fam-1",
     sub: "alice",
     issued_at: 1000L,
@@ -47,7 +47,7 @@ async fn main {
   println("refresh = \{refresh.token}")
   println("")
   println("== 2 四段门:verify → revocation → resolve → dispatch ==")
-  let door : @moongrd.Guard[String, String, String] = @moongrd.Guard::new(
+  let door : @moongard.Guard[String, String, String] = @moongard.Guard::new(
     config~,
     signer~,
     revocations~,
@@ -61,7 +61,7 @@ async fn main {
     dispatch=async fn(u : String, req : String) -> String {
       "已为 \{u} 处理:\{req}"
     },
-    audit=async fn(e : @moongrd.AuditEvent) -> Unit {
+    audit=async fn(e : @moongard.AuditEvent) -> Unit {
       println("  audit[\{e.stage}] ok=\{e.ok} \{e.detail}")
     },
   )
@@ -73,7 +73,7 @@ async fn main {
   println("== 3 换发:旧票作废,新票入族 ==")
   let mut latest = refresh.token
   match
-    @moongrd.refresh(config, signer, store, 3000L, refresh.token, "jti-r2") {
+    @moongard.refresh(config, signer, store, 3000L, refresh.token, "jti-r2") {
     Ok(r) => {
       latest = r.refresh.token
       println("新 refresh 入族 \{r.family_id}(旧票 jti-r1 已标 used)")
@@ -83,16 +83,16 @@ async fn main {
   println("")
   println("== 4 重放:已用旧票再现 → 撤全族 ==")
   match
-    @moongrd.refresh(config, signer, store, 4000L, refresh.token, "jti-r3") {
-    Err(@moongrd.RefreshErr::Replayed(family)) =>
+    @moongard.refresh(config, signer, store, 4000L, refresh.token, "jti-r3") {
+    Err(@moongard.RefreshErr::Replayed(family)) =>
       println("重放戳穿!族 \{family} 已全族作废")
     Err(e) => println("意外 → \{e.to_repr()}")
     Ok(_) => println("?!重放竟成功")
   }
   println("")
   println("== 5 族谱尽戮:换发来的新票也活不成 ==")
-  match @moongrd.refresh(config, signer, store, 5000L, latest, "jti-r4") {
-    Err(@moongrd.RefreshErr::Revoked(c)) =>
+  match @moongard.refresh(config, signer, store, 5000L, latest, "jti-r4") {
+    Err(@moongard.RefreshErr::Revoked(c)) =>
       println("新票 \{c.jti} 随族殉葬 → 回握手重登录")
     Err(e) => println("意外 → \{e.to_repr()}")
     Ok(_) => println("?!族撤了新票还活着")
@@ -101,8 +101,8 @@ async fn main {
   println("== 6 篡改:载荷首码元翻转 → BadMac ==")
   let n = access.token.length()
   let tampered = "f" + access.token[1:n].to_owned()
-  match @moongrd.verify(config, signer, 2000L, tampered) {
-    Err(@moongrd.VerifyErr::BadMac) =>
+  match @moongard.verify(config, signer, 2000L, tampered) {
+    Err(@moongard.VerifyErr::BadMac) =>
       println("BadMac 戳穿,拒绝不带载荷")
     Err(e) => println("意外 → \{e.to_repr()}")
     Ok(_) => println("?!篡改竟通过")

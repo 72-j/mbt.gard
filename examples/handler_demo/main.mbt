@@ -1,5 +1,5 @@
 // main.mbt — 回调方言演示:实现三回调 + 一句 mount = 一道四段门
-// 运行:cd moongrd && moon run examples/handler_demo
+// 运行:cd moongard && moon run examples/handler_demo
 // 对照:examples/walkthrough 是进阶形(泛型钩子);本演示是初级形——
 // 用户的全部工作量 = 下面 Reception 的三个 impl,其余框架代劳。
 
@@ -34,7 +34,7 @@ pub impl @handler.DoorHandler for Reception with fn dispatch(
 /// 怎么记:audit 段(不可失败;不想记就写空体)
 pub impl @handler.DoorHandler for Reception with fn audit(
   self : Reception,
-  e : @moongrd.AuditEvent,
+  e : @moongard.AuditEvent,
 ) -> Unit {
   let _ = self
   println("  流水[\{e.stage}] ok=\{e.ok} \{e.detail}")
@@ -42,13 +42,13 @@ pub impl @handler.DoorHandler for Reception with fn audit(
 
 ///|
 async fn main {
-  let config = @moongrd.GuardConfig::make(
+  let config = @moongard.GuardConfig::make(
     issuer="demo-iss",
     audience="demo-aud",
     access_ttl_ms=60000L,
     refresh_ttl_ms=600000L,
   )
-  let signer : &@moongrd.Signer = @mooncry.HmacSha256Signer::new(
+  let signer : &@moongard.Signer = @mooncry.HmacSha256Signer::new(
     Bytes::make(32, b'\x33'),
   )
   let door = @handler.mount(
@@ -60,12 +60,12 @@ async fn main {
   println("== 回调方言:实现三回调 + 一句 mount ==")
   println("")
   println("── 访客 alice:全链放行 ──")
-  let alice = @moongrd.issue(
+  let alice = @moongard.issue(
     config,
     signer,
     1000L,
     "alice",
-    @moongrd.TokenType::Access,
+    @moongard.TokenType::Access,
     "jti-x1",
   )
   match door.run(1000L, alice.token, Json::string("读空间 doc1")) {
@@ -74,12 +74,12 @@ async fn main {
   }
   println("")
   println("── 访客 bob:陌生人,resolve 段拒 ──")
-  let bob = @moongrd.issue(
+  let bob = @moongard.issue(
     config,
     signer,
     1000L,
     "bob",
-    @moongrd.TokenType::Access,
+    @moongard.TokenType::Access,
     "jti-x2",
   )
   match door.run(1000L, bob.token, Json::string("删库")) {

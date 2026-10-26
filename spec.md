@@ -1,4 +1,4 @@
-# MoonGrd spec —— 协议形态与演进锚
+# MoonGard spec —— 协议形态与演进锚
 
 Guardian 式认证管道框架。本卷 = 协议形态定谳 + 升级演进锚:每个可换维度
 钉一条**不变式**,升级换内脏不破消费方。
@@ -89,7 +89,7 @@ adapter(D-G6 同构)——YAGNI,不预铺。
 | D-G6 | Signer / Cipher trait 在核心,实现在 adapter/mooncry;核心不 import mooncry |
 | D-G7 | 安全信道(PSK-CR / HKDF / GCM seq-IV / 滑窗)不进本框架,住 moonkcp secchan |
 | D-G8 | 文档律:moduledoc 即教程,示例内嵌可跑形 |
-| D-G9 | 模块名 moongrd(MoonGrd),Apache-2.0;受众 = 所有需要在 MoonBit 里做认证的服务作者 |
+| D-G9 | 模块名 moongard(MoonGard),Apache-2.0;受众 = 所有需要在 MoonBit 里做认证的服务作者 |
 | D-G10 | 扩展面三档:多式有状态 = trait、单钩子 = 闭包、verify 段 = 框架私产不回调 |
 | D-G11 | audit 钩子不可失败:返回 Unit,审计写败是 sink 自己的事,管线不被拖死 |
 | D-G12 | hooks 全 async 型(案 A 定谳):async fn 型语言级,零 import 可写字段/定义/传参直调;async trait 方法已证——核心保零依赖 |

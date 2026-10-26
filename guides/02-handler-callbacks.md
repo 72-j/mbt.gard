@@ -23,7 +23,7 @@ struct MyDoor {
 }
 
 ///|
-pub impl @moongrd.DoorHandler for MyDoor with admit(
+pub impl @moongard.DoorHandler for MyDoor with admit(
   self : MyDoor,
   sub : String,
 ) -> Bool {
@@ -31,7 +31,7 @@ pub impl @moongrd.DoorHandler for MyDoor with admit(
 }
 
 ///|
-pub impl @moongrd.DoorHandler for MyDoor with dispatch(
+pub impl @moongard.DoorHandler for MyDoor with dispatch(
   self : MyDoor,
   sub : String,
   req : Json,
@@ -40,9 +40,9 @@ pub impl @moongrd.DoorHandler for MyDoor with dispatch(
 }
 
 ///|
-pub impl @moongrd.DoorHandler for MyDoor with audit(
+pub impl @moongard.DoorHandler for MyDoor with audit(
   self : MyDoor,
-  e : @moongrd.AuditEvent,
+  e : @moongard.AuditEvent,
 ) -> Unit {
   println("[audit] \{e.stage} ok=\{e.ok} \{e.detail}")
 }

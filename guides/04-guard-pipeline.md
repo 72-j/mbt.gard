@@ -19,13 +19,13 @@ audit       全程每段一行 AuditEvent,拒绝短路带拒因
 ## Guard 全形(进阶)
 
 ```moonbit
-let door = @moongrd.Guard::new(
+let door = @moongard.Guard::new(
   config=config,
   signer=signer,
   revocations=revocations,
   resolve=async fn(sub : String) -> User? { ... },      // None = 陌生人拒
   dispatch=async fn(u : User, req : Req) -> Resp { ... },
-  audit=async fn(e : @moongrd.AuditEvent) -> Unit { ... }, // 可省,省略 = 吞流
+  audit=async fn(e : @moongard.AuditEvent) -> Unit { ... }, // 可省,省略 = 吞流
   protocol=my_protocol,                                   // 可省,省略 = bearer token
 )
 let resp = door.run(now_ms(), access_token, req)  // 泛型 TReq/TResp 任意

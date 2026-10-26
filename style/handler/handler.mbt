@@ -14,18 +14,18 @@ pub(open) trait DoorHandler {
   /// 认证过了,活儿怎么干(dispatch 段)
   async fn dispatch(self : Self, sub : String, req : Json) -> Json
   /// 流水账怎么记(audit 段;不可失败,不想记就写空体)
-  async fn audit(self : Self, e : @moongrd.AuditEvent) -> Unit
+  async fn audit(self : Self, e : @moongard.AuditEvent) -> Unit
 }
 
 ///|
 /// 挂载:回调 trait → 四段门(框架代接线,audit 直通 handler.audit)。
 pub fn mount(
-  config~ : @moongrd.GuardConfig,
-  signer~ : &@moongrd.Signer,
-  revocations~ : &@moongrd.RevocationStore,
+  config~ : @moongard.GuardConfig,
+  signer~ : &@moongard.Signer,
+  revocations~ : &@moongard.RevocationStore,
   handler~ : &DoorHandler,
-) -> @moongrd.Guard[String, Json, Json] {
-  @moongrd.Guard::new(
+) -> @moongard.Guard[String, Json, Json] {
+  @moongard.Guard::new(
     config~,
     signer~,
     revocations~,
@@ -38,6 +38,6 @@ pub fn mount(
     dispatch=async fn(sub : String, req : Json) -> Json {
       handler.dispatch(sub, req)
     },
-    audit=async fn(e : @moongrd.AuditEvent) -> Unit { handler.audit(e) },
+    audit=async fn(e : @moongard.AuditEvent) -> Unit { handler.audit(e) },
   )
 }

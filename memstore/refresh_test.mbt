@@ -21,18 +21,18 @@ fn toy_digest(salt : Int32, payload : Bytes) -> Bytes {
 }
 
 ///|
-impl @moongrd.Signer for ToySigner with fn sign(self, payload) -> Bytes {
+impl @moongard.Signer for ToySigner with fn sign(self, payload) -> Bytes {
   toy_digest(self.salt, payload)
 }
 
 ///|
-impl @moongrd.Signer for ToySigner with fn verify(self, payload, mac) -> Bool {
+impl @moongard.Signer for ToySigner with fn verify(self, payload, mac) -> Bool {
   toy_digest(self.salt, payload) == mac
 }
 
 ///|
-fn g1_config() -> @moongrd.GuardConfig {
-  @moongrd.GuardConfig::make(
+fn g1_config() -> @moongard.GuardConfig {
+  @moongard.GuardConfig::make(
     issuer="iss1",
     audience="aud1",
     access_ttl_ms=60000L,
@@ -41,7 +41,7 @@ fn g1_config() -> @moongrd.GuardConfig {
 }
 
 ///|
-fn g1_signer() -> &@moongrd.Signer {
+fn g1_signer() -> &@moongard.Signer {
   let toy : ToySigner = { salt: 11, }
   toy
 }
@@ -49,19 +49,19 @@ fn g1_signer() -> &@moongrd.Signer {
 ///|
 /// 登录造族:发 refresh 票并入账(family/jti 由测方注入)。
 fn login(
-  store : &@moongrd.RefreshStore,
+  store : &@moongard.RefreshStore,
   family : String,
   jti : String,
-) -> @moongrd.Issued {
-  let issued = @moongrd.issue(
+) -> @moongard.Issued {
+  let issued = @moongard.issue(
     g1_config(),
     g1_signer(),
     1000000L,
     "alice",
-    @moongrd.TokenType::Refresh,
+    @moongard.TokenType::Refresh,
     jti,
   )
-  let record : @moongrd.RefreshRecord = {
+  let record : @moongard.RefreshRecord = {
     family_id: family,
     sub: "alice",
     issued_at: 1000000L,
@@ -75,10 +75,10 @@ fn login(
 
 ///|
 test "G1 旋转换新:旧票作废,新票同族有效" {
-  let store : &@moongrd.RefreshStore = @memstore.MemRefreshStore::new()
+  let store : &@moongard.RefreshStore = @memstore.MemRefreshStore::new()
   let first = login(store, "fam1", "jti-1")
   let rotated = match
-    @moongrd.refresh(
+    @moongard.refresh(
       g1_config(),
       g1_signer(),
       store,
@@ -100,12 +100,12 @@ test "G1 旋转换新:旧票作废,新票同族有效" {
   assert_eq(rotated.family_id, "fam1")
   assert_eq(rotated.refresh.claims.jti, "jti-2")
   assert_eq(rotated.refresh.claims.sub, "alice")
-  let again = @moongrd.verify_for(
+  let again = @moongard.verify_for(
     g1_config(),
     g1_signer(),
     1000001L,
     rotated.refresh.token,
-    @moongrd.TokenType::Refresh,
+    @moongard.TokenType::Refresh,
   )
   assert_true(again is Ok(_))
   let new_record = match store.get("jti-2") {
@@ -118,9 +118,9 @@ test "G1 旋转换新:旧票作废,新票同族有效" {
 
 ///|
 test "G1 重放检测:已用票再现报 Replayed 并撤全族" {
-  let store : &@moongrd.RefreshStore = @memstore.MemRefreshStore::new()
+  let store : &@moongard.RefreshStore = @memstore.MemRefreshStore::new()
   let first = login(store, "fam1", "jti-1")
-  let _ = @moongrd.refresh(
+  let _ = @moongard.refresh(
     g1_config(),
     g1_signer(),
     store,
@@ -130,7 +130,7 @@ test "G1 重放检测:已用票再现报 Replayed 并撤全族" {
   )
   // 已用旧票再现 = 重放
   match
-    @moongrd.refresh(
+    @moongard.refresh(
       g1_config(),
       g1_signer(),
       store,
@@ -138,7 +138,7 @@ test "G1 重放检测:已用票再现报 Replayed 并撤全族" {
       first.token,
       "jti-3",
     ) {
-    Err(@moongrd.RefreshErr::Replayed(family)) => assert_eq(family, "fam1")
+    Err(@moongard.RefreshErr::Replayed(family)) => assert_eq(family, "fam1")
     _ => abort("应报 Replayed")
   }
   // 撤族生效:账面 revoked 位翻真
@@ -151,10 +151,10 @@ test "G1 重放检测:已用票再现报 Replayed 并撤全族" {
 
 ///|
 test "G1 族谱尽戮:撤族后连新票也拒" {
-  let store : &@moongrd.RefreshStore = @memstore.MemRefreshStore::new()
+  let store : &@moongard.RefreshStore = @memstore.MemRefreshStore::new()
   let first = login(store, "fam1", "jti-1")
   let rotated = match
-    @moongrd.refresh(
+    @moongard.refresh(
       g1_config(),
       g1_signer(),
       store,
@@ -165,7 +165,7 @@ test "G1 族谱尽戮:撤族后连新票也拒" {
     Ok(r) => r
     Err(_) => abort("换新应成")
   }
-  let _ = @moongrd.refresh(
+  let _ = @moongard.refresh(
     g1_config(),
     g1_signer(),
     store,
@@ -175,7 +175,7 @@ test "G1 族谱尽戮:撤族后连新票也拒" {
   )
   // 新票(未用过)也因族被撤而拒,错误携带 claims 供审计
   match
-    @moongrd.refresh(
+    @moongard.refresh(
       g1_config(),
       g1_signer(),
       store,
@@ -183,22 +183,22 @@ test "G1 族谱尽戮:撤族后连新票也拒" {
       rotated.refresh.token,
       "jti-4",
     ) {
-    Err(@moongrd.RefreshErr::Revoked(c)) => assert_eq(c.jti, "jti-2")
+    Err(@moongard.RefreshErr::Revoked(c)) => assert_eq(c.jti, "jti-2")
     _ => abort("新票应因族被撤而拒")
   }
 }
 
 ///|
 test "G1 过期 refresh:Verify(Expired) 即回握手信号" {
-  let store : &@moongrd.RefreshStore = @memstore.MemRefreshStore::new()
+  let store : &@moongard.RefreshStore = @memstore.MemRefreshStore::new()
   let first = login(store, "fam1", "jti-1")
   // token exp = 1000000 + refresh_ttl 600000 = 1600000;+drift 5000 → 界内 1605000 收
   assert_true(
-    @moongrd.verify(g1_config(), g1_signer(), 1605000L, first.token) is Ok(_),
+    @moongard.verify(g1_config(), g1_signer(), 1605000L, first.token) is Ok(_),
   )
   // 1605001 起拒:Verify(Expired) 即回握手信号
   match
-    @moongrd.refresh(
+    @moongard.refresh(
       g1_config(),
       g1_signer(),
       store,
@@ -206,16 +206,16 @@ test "G1 过期 refresh:Verify(Expired) 即回握手信号" {
       first.token,
       "jti-2",
     ) {
-    Err(@moongrd.RefreshErr::Verify(@moongrd.VerifyErr::Expired(_))) => ()
+    Err(@moongard.RefreshErr::Verify(@moongard.VerifyErr::Expired(_))) => ()
     _ => abort("应报 Verify(Expired)")
   }
 }
 
 ///|
 test "G1 伪造票:线形坏 → Verify 包裹上抛" {
-  let store : &@moongrd.RefreshStore = @memstore.MemRefreshStore::new()
+  let store : &@moongard.RefreshStore = @memstore.MemRefreshStore::new()
   match
-    @moongrd.refresh(
+    @moongard.refresh(
       g1_config(),
       g1_signer(),
       store,
@@ -223,25 +223,25 @@ test "G1 伪造票:线形坏 → Verify 包裹上抛" {
       "nodot",
       "jti-1",
     ) {
-    Err(@moongrd.RefreshErr::Verify(@moongrd.VerifyErr::Malformed(_))) => ()
+    Err(@moongard.RefreshErr::Verify(@moongard.VerifyErr::Malformed(_))) => ()
     _ => abort("应报 Verify(Malformed)")
   }
 }
 
 ///|
 test "G1 账本无记录:mac 过也拒 UnknownToken" {
-  let store : &@moongrd.RefreshStore = @memstore.MemRefreshStore::new()
+  let store : &@moongard.RefreshStore = @memstore.MemRefreshStore::new()
   // 签发但故意不入账(模拟别处签发/账本丢)
-  let ghost = @moongrd.issue(
+  let ghost = @moongard.issue(
     g1_config(),
     g1_signer(),
     1000000L,
     "alice",
-    @moongrd.TokenType::Refresh,
+    @moongard.TokenType::Refresh,
     "ghost-1",
   )
   match
-    @moongrd.refresh(
+    @moongard.refresh(
       g1_config(),
       g1_signer(),
       store,
@@ -249,23 +249,23 @@ test "G1 账本无记录:mac 过也拒 UnknownToken" {
       ghost.token,
       "jti-1",
     ) {
-    Err(@moongrd.RefreshErr::UnknownToken) => ()
+    Err(@moongard.RefreshErr::UnknownToken) => ()
     _ => abort("应报 UnknownToken")
   }
 }
 
 ///|
 test "G1 显式吊销:revoked 位直拒" {
-  let store : &@moongrd.RefreshStore = @memstore.MemRefreshStore::new()
-  let issued = @moongrd.issue(
+  let store : &@moongard.RefreshStore = @memstore.MemRefreshStore::new()
+  let issued = @moongard.issue(
     g1_config(),
     g1_signer(),
     1000000L,
     "alice",
-    @moongrd.TokenType::Refresh,
+    @moongard.TokenType::Refresh,
     "jti-1",
   )
-  let record : @moongrd.RefreshRecord = {
+  let record : @moongard.RefreshRecord = {
     family_id: "fam1",
     sub: "alice",
     issued_at: 1000000L,
@@ -275,7 +275,7 @@ test "G1 显式吊销:revoked 位直拒" {
   }
   store.put("jti-1", record)
   match
-    @moongrd.refresh(
+    @moongard.refresh(
       g1_config(),
       g1_signer(),
       store,
@@ -283,7 +283,7 @@ test "G1 显式吊销:revoked 位直拒" {
       issued.token,
       "jti-2",
     ) {
-    Err(@moongrd.RefreshErr::Revoked(c)) => assert_eq(c.jti, "jti-1")
+    Err(@moongard.RefreshErr::Revoked(c)) => assert_eq(c.jti, "jti-1")
     _ => abort("应报 Revoked")
   }
 }
@@ -291,7 +291,7 @@ test "G1 显式吊销:revoked 位直拒" {
 ///|
 test "G1 账本基操:mark_used/revoke_family/sweep" {
   let mem = @memstore.MemRefreshStore::new()
-  let store : &@moongrd.RefreshStore = mem
+  let store : &@moongard.RefreshStore = mem
   let _ = login(store, "fam1", "jti-1")
   let _ = login(store, "fam1", "jti-2")
   let _ = login(store, "fam2", "jti-3")

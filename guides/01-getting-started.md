@@ -5,26 +5,26 @@
 ## 1. 安装
 
 ```bash
-moon add thy1016/moongrd
-moon add thy1016/moongrd/adapter/mooncry   # 真加密面(HMAC-SHA256)
-moon add thy1016/moongrd/memstore          # 内存账本(族谱/吊销表)
-moon add thy1016/moongrd/style/handler     # 回调方言
+moon add thy1016/moongard
+moon add thy1016/moongard/adapter/mooncry   # 真加密面(HMAC-SHA256)
+moon add thy1016/moongard/memstore          # 内存账本(族谱/吊销表)
+moon add thy1016/moongard/style/handler     # 回调方言
 ```
 
 消费包 `moon.pkg` 的 import 块加上对应路径,前缀分别为
-`@moongrd` / `@mooncry` / `@memstore` / `@handler`。
+`@moongard` / `@mooncry` / `@memstore` / `@handler`。
 
 ## 2. 配置与签名者
 
 ```moonbit
-let config = @moongrd.GuardConfig::make(
+let config = @moongard.GuardConfig::make(
   issuer="demo-iss",
   audience="demo-app",
   access_ttl_ms=60000L,      // access 票 60 秒
   refresh_ttl_ms=600000L,    // refresh 票 10 分钟
 )
 // 真实部署:key 来自启动期口令/PSK 拉伸(见 05 篇慢哈希律)
-let signer : &@moongrd.Signer = @mooncry.HmacSha256Signer::new(
+let signer : &@moongard.Signer = @mooncry.HmacSha256Signer::new(
   Bytes::make(32, b'\x11'),
 )
 ```
@@ -33,12 +33,12 @@ let signer : &@moongrd.Signer = @mooncry.HmacSha256Signer::new(
 
 ```moonbit
 // 时间与 jti 由你注入(核心零时钟零随机;生产用真钟 + CSPRNG)
-let token = @moongrd.issue(
+let token = @moongard.issue(
   config,
   signer,
   now_ms(),
   "alice",
-  @moongrd.TokenType::Access,
+  @moongard.TokenType::Access,
   "jti-0001",
 )
 // token.token 即线形字符串,随请求带给服务端

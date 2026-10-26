@@ -1,9 +1,9 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "thy1016/moongrd/examples/handler_demo"
+package "thy1016/moongard/examples/handler_demo"
 
 import {
-  "thy1016/moongrd",
-  "thy1016/moongrd/style/handler",
+  "thy1016/moongard",
+  "thy1016/moongard/style/handler",
 }
 
 // Values

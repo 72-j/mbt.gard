@@ -1,8 +1,8 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "thy1016/moongrd/memstore"
+package "thy1016/moongard/memstore"
 
 import {
-  "thy1016/moongrd",
+  "thy1016/moongard",
 }
 
 // Values
@@ -11,15 +11,15 @@ import {
 
 // Types and methods
 pub(all) struct MemRefreshStore {
-  mut table : Map[String, @moongrd.RefreshRecord]
+  mut table : Map[String, @moongard.RefreshRecord]
 }
-pub fn MemRefreshStore::get(Self, String) -> @moongrd.RefreshRecord?
+pub fn MemRefreshStore::get(Self, String) -> @moongard.RefreshRecord?
 pub fn MemRefreshStore::mark_used(Self, String) -> Unit
 pub fn MemRefreshStore::new() -> Self
-pub fn MemRefreshStore::put(Self, String, @moongrd.RefreshRecord) -> Unit
+pub fn MemRefreshStore::put(Self, String, @moongard.RefreshRecord) -> Unit
 pub fn MemRefreshStore::revoke_family(Self, String) -> Unit
 pub fn MemRefreshStore::sweep(Self, Int64) -> Int32
-pub impl @moongrd.RefreshStore for MemRefreshStore
+pub impl @moongard.RefreshStore for MemRefreshStore
 
 pub(all) struct MemRevocationStore {
   mut tomb : Map[String, Bool]
@@ -27,7 +27,7 @@ pub(all) struct MemRevocationStore {
 pub fn MemRevocationStore::new() -> Self
 pub fn MemRevocationStore::revoke(Self, String) -> Unit
 pub fn MemRevocationStore::revoked(Self, String) -> Bool
-pub impl @moongrd.RevocationStore for MemRevocationStore
+pub impl @moongard.RevocationStore for MemRevocationStore
 
 // Type aliases
 

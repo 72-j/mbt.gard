@@ -29,14 +29,14 @@ pub impl @handler.DoorHandler for AdminDoor with fn dispatch(
 ///|
 pub impl @handler.DoorHandler for AdminDoor with fn audit(
   self : AdminDoor,
-  e : @moongrd.AuditEvent,
+  e : @moongard.AuditEvent,
 ) -> Unit {
   self.lines.push("\{e.stage}:\{e.ok}")
 }
 
 ///|
-fn hd_config() -> @moongrd.GuardConfig {
-  @moongrd.GuardConfig::make(
+fn hd_config() -> @moongard.GuardConfig {
+  @moongard.GuardConfig::make(
     issuer="iss1",
     audience="aud1",
     access_ttl_ms=60000L,
@@ -45,7 +45,7 @@ fn hd_config() -> @moongrd.GuardConfig {
 }
 
 ///|
-fn hd_signer() -> &@moongrd.Signer {
+fn hd_signer() -> &@moongard.Signer {
   @mooncry.HmacSha256Signer::new(Bytes::make(32, b'\x21'))
 }
 
@@ -63,12 +63,12 @@ async test "handler 方言:三回调 mount,全链绿+审计四行" {
     revocations=@memstore.MemRevocationStore::new(),
     handler~,
   )
-  let token = @moongrd.issue(
+  let token = @moongard.issue(
     hd_config(),
     hd_signer(),
     1000000L,
     "alice",
-    @moongrd.TokenType::Access,
+    @moongard.TokenType::Access,
     "jti-h1",
   )
   let out = door.run(1000000L, token.token, Json::string("清理缓存"))
@@ -96,16 +96,16 @@ async test "handler 方言:陌生人 resolve 拒,审计三行带拒因" {
     revocations=@memstore.MemRevocationStore::new(),
     handler~,
   )
-  let bob = @moongrd.issue(
+  let bob = @moongard.issue(
     hd_config(),
     hd_signer(),
     1000000L,
     "bob",
-    @moongrd.TokenType::Access,
+    @moongard.TokenType::Access,
     "jti-h2",
   )
   let out = door.run(1000000L, bob.token, Json::string("清理缓存"))
-  assert_true(out is Err(@moongrd.GuardErr::Unresolved("bob")))
+  assert_true(out is Err(@moongard.GuardErr::Unresolved("bob")))
   // verify ok + revocation ok + resolve fail = 三行
   assert_eq(door_log.length(), 3)
   assert_eq(door_log[2], "resolve:false")
@@ -126,7 +126,7 @@ async test "handler 方言:坏票 verify 拒,单行拒因 malformed" {
     handler~,
   )
   let out = door.run(1000000L, "nodot", Json::string("清理缓存"))
-  assert_true(out is Err(@moongrd.GuardErr::Verify(_)))
+  assert_true(out is Err(@moongard.GuardErr::Verify(_)))
   assert_eq(door_log.length(), 1)
   assert_eq(door_log[0], "verify:false")
 }
@@ -140,23 +140,23 @@ async test "handler 方言:demo 预设一键起门(名单+回声+上屏)" {
     revocations=@memstore.MemRevocationStore::new(),
     handler~,
   )
-  let alice = @moongrd.issue(
+  let alice = @moongard.issue(
     hd_config(),
     hd_signer(),
     1000000L,
     "alice",
-    @moongrd.TokenType::Access,
+    @moongard.TokenType::Access,
     "jti-hd1",
   )
   assert_true(door.run(1000000L, alice.token, Json::string("x")) is Ok(_))
-  let bob = @moongrd.issue(
+  let bob = @moongard.issue(
     hd_config(),
     hd_signer(),
     1000000L,
     "bob",
-    @moongrd.TokenType::Access,
+    @moongard.TokenType::Access,
     "jti-hd2",
   )
   let out = door.run(1000000L, bob.token, Json::string("x"))
-  assert_true(out is Err(@moongrd.GuardErr::Unresolved("bob")))
+  assert_true(out is Err(@moongard.GuardErr::Unresolved("bob")))
 }

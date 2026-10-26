@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "thy1016/moongrd"
+package "thy1016/moongard"
 
 import {
   "moonbitlang/core/debug",
@@ -48,7 +48,7 @@ pub(all) struct Guard[TSubj, TReq, TResp] {
   protocol : &AuthProtocol
   resolve : async (String) -> TSubj?
   dispatch : async (TSubj, TReq) -> TResp
-  audit : async (AuditEvent) -> Unit
+  audit : (async (AuditEvent) -> Unit)?
 }
 pub fn[TSubj, TReq, TResp] Guard::new(config~ : GuardConfig, signer~ : &Signer, revocations~ : &RevocationStore, resolve~ : async (String) -> TSubj?, dispatch~ : async (TSubj, TReq) -> TResp, audit? : async (AuditEvent) -> Unit, protocol? : &AuthProtocol) -> Self[TSubj, TReq, TResp]
 pub async fn[TSubj, TReq, TResp] Guard::run(Self[TSubj, TReq, TResp], Int64, String, TReq) -> Result[TResp, GuardErr]

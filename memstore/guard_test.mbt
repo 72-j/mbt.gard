@@ -4,14 +4,14 @@
 
 ///|
 struct AuditLog {
-  events : Array[@moongrd.AuditEvent]
+  events : Array[@moongard.AuditEvent]
 }
 
 ///|
 let g2_log : AuditLog = { events: [], }
 
 ///|
-async fn g2_audit(e : @moongrd.AuditEvent) -> Unit {
+async fn g2_audit(e : @moongard.AuditEvent) -> Unit {
   g2_log.events.push(e)
 }
 
@@ -36,9 +36,9 @@ async fn g2_dispatch(u : DUser, req : String) -> String {
 
 ///|
 fn g2_guard(
-  revocations : &@moongrd.RevocationStore,
-) -> @moongrd.Guard[DUser, String, String] {
-  @moongrd.Guard::new(
+  revocations : &@moongard.RevocationStore,
+) -> @moongard.Guard[DUser, String, String] {
+  @moongard.Guard::new(
     config=g1_config(),
     signer=g1_signer(),
     revocations~,
@@ -49,13 +49,13 @@ fn g2_guard(
 }
 
 ///|
-fn g2_login(jti : String) -> @moongrd.Issued {
-  @moongrd.issue(
+fn g2_login(jti : String) -> @moongard.Issued {
+  @moongard.issue(
     g1_config(),
     g1_signer(),
     1000000L,
     "alice",
-    @moongrd.TokenType::Access,
+    @moongard.TokenType::Access,
     jti,
   )
 }
@@ -89,7 +89,7 @@ async test "G2 坏票:verify 拒短路,dispatch 不曾到场" {
   g2_log.events.clear()
   let door = g2_guard(@memstore.MemRevocationStore::new())
   let out = door.run(1000000L, "nodot", "hi")
-  assert_true(out is Err(@moongrd.GuardErr::Verify(_)))
+  assert_true(out is Err(@moongard.GuardErr::Verify(_)))
   assert_eq(g2_log.events.length(), 1)
   assert_eq(g2_log.events[0].stage, "verify")
   assert_true(g2_log.events[0].ok == false)
@@ -104,7 +104,7 @@ async test "G2 吊销票:revocation 段拒,拒因落审计" {
   let token = g2_login("jti-a3")
   revocations.revoke("jti-a3")
   let out = door.run(1000000L, token.token, "hi")
-  assert_true(out is Err(@moongrd.GuardErr::Revoked))
+  assert_true(out is Err(@moongard.GuardErr::Revoked))
   // 两行:verify ok + revocation fail
   assert_eq(g2_log.events.length(), 2)
   assert_true(g2_log.events[0].ok)
@@ -116,17 +116,17 @@ async test "G2 吊销票:revocation 段拒,拒因落审计" {
 async test "G2 陌生人:resolve None → Unresolved,sub 随审计" {
   g2_log.events.clear()
   let door = g2_guard(@memstore.MemRevocationStore::new())
-  let token = @moongrd.issue(
+  let token = @moongard.issue(
     g1_config(),
     g1_signer(),
     1000000L,
     "bob",
-    @moongrd.TokenType::Access,
+    @moongard.TokenType::Access,
     "jti-a4",
   )
   let out = door.run(1000000L, token.token, "hi")
   match out {
-    Err(@moongrd.GuardErr::Unresolved(sub)) => assert_eq(sub, "bob")
+    Err(@moongard.GuardErr::Unresolved(sub)) => assert_eq(sub, "bob")
     _ => abort("应报 Unresolved")
   }
   // 三行:verify ok + revocation ok + resolve fail
@@ -138,13 +138,13 @@ async test "G2 陌生人:resolve None → Unresolved,sub 随审计" {
 ///|
 async test "G2 匿名 async 钩子字面量:语法探针转正罐" {
   g2_log.events.clear()
-  let door = @moongrd.Guard::new(
+  let door = @moongard.Guard::new(
     config=g1_config(),
     signer=g1_signer(),
     revocations=@memstore.MemRevocationStore::new(),
     resolve=async fn(name : String) -> DUser? { Some({ name, }) },
     dispatch=async fn(u : DUser, _req : String) -> String { "\{u.name}!" },
-    audit=async fn(e : @moongrd.AuditEvent) -> Unit { g2_log.events.push(e) },
+    audit=async fn(e : @moongard.AuditEvent) -> Unit { g2_log.events.push(e) },
   )
   let token = g2_login("jti-a5")
   let out = door.run(1000000L, token.token, "yo")
@@ -158,7 +158,7 @@ async test "G2 匿名 async 钩子字面量:语法探针转正罐" {
 ///|
 async test "G2 初级方言:audit 可省(吞流 no-op),五参起步" {
   g2_log.events.clear()
-  let door = @moongrd.Guard::new(
+  let door = @moongard.Guard::new(
     config=g1_config(),
     signer=g1_signer(),
     revocations=@memstore.MemRevocationStore::new(),
@@ -181,13 +181,13 @@ async test "G2 初级方言:audit 可省(吞流 no-op),五参起步" {
 struct MasterProtocol {}
 
 ///|
-pub impl @moongrd.AuthProtocol for MasterProtocol with fn verify_access(
+pub impl @moongard.AuthProtocol for MasterProtocol with fn verify_access(
   self : MasterProtocol,
-  config~ : @moongrd.GuardConfig,
-  signer~ : &@moongrd.Signer,
+  config~ : @moongard.GuardConfig,
+  signer~ : &@moongard.Signer,
   now~ : Int64,
   token~ : String,
-) -> Result[@moongrd.Claims, @moongrd.VerifyErr] {
+) -> Result[@moongard.Claims, @moongard.VerifyErr] {
   let _ = (self, config, signer, now, token)
   Ok({
     sub: "master",
@@ -195,7 +195,7 @@ pub impl @moongrd.AuthProtocol for MasterProtocol with fn verify_access(
     aud: "master",
     iat: 0L,
     exp: 9223372036854775807L,
-    typ: @moongrd.TokenType::Access,
+    typ: @moongard.TokenType::Access,
     jti: "jti-master",
   })
 }
@@ -203,7 +203,7 @@ pub impl @moongrd.AuthProtocol for MasterProtocol with fn verify_access(
 ///|
 async test "G2 协议换挡:自定义 AuthProtocol 万能票进门,管线四行照走" {
   g2_log.events.clear()
-  let door = @moongrd.Guard::new(
+  let door = @moongard.Guard::new(
     config=g1_config(),
     signer=g1_signer(),
     revocations=@memstore.MemRevocationStore::new(),
@@ -224,34 +224,34 @@ async test "G2 协议换挡:自定义 AuthProtocol 万能票进门,管线四行�
 ///|
 async test "G2 drift 自定义:漂移窗随配置移动" {
   let signer = g1_signer()
-  let strict : @moongrd.GuardConfig = @moongrd.GuardConfig::make(
+  let strict : @moongard.GuardConfig = @moongard.GuardConfig::make(
     issuer="iss1",
     audience="aud1",
     access_ttl_ms=60000L,
     refresh_ttl_ms=600000L,
   )
-  let issued = @moongrd.issue(
+  let issued = @moongard.issue(
     strict,
     signer,
     1000000L,
     "alice",
-    @moongrd.TokenType::Access,
+    @moongard.TokenType::Access,
     "jti-d1",
   )
   // 默认 drift 5000:exp=1060000,1065001 起拒
   assert_true(
-    @moongrd.verify(strict, signer, 1065001L, issued.token) is Err(Expired(_)),
+    @moongard.verify(strict, signer, 1065001L, issued.token) is Err(Expired(_)),
   )
   // 自定义 drift 60000:同一票 1119999 仍收,1120001 拒
-  let loose : @moongrd.GuardConfig = {
+  let loose : @moongard.GuardConfig = {
     issuer: "iss1",
     audience: "aud1",
     allowed_drift_ms: 60000L,
     access_ttl_ms: 60000L,
     refresh_ttl_ms: 600000L,
   }
-  assert_true(@moongrd.verify(loose, signer, 1119999L, issued.token) is Ok(_))
+  assert_true(@moongard.verify(loose, signer, 1119999L, issued.token) is Ok(_))
   assert_true(
-    @moongrd.verify(loose, signer, 1120001L, issued.token) is Err(Expired(_)),
+    @moongard.verify(loose, signer, 1120001L, issued.token) is Err(Expired(_)),
   )
 }

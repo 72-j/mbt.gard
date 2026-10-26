@@ -13,7 +13,7 @@ pub fn HmacSha256Signer::new(key : Bytes) -> HmacSha256Signer {
 }
 
 ///|
-pub impl @moongrd.Signer for HmacSha256Signer with fn sign(
+pub impl @moongard.Signer for HmacSha256Signer with fn sign(
   self,
   payload : Bytes,
 ) -> Bytes {
@@ -21,7 +21,7 @@ pub impl @moongrd.Signer for HmacSha256Signer with fn sign(
 }
 
 ///|
-pub impl @moongrd.Signer for HmacSha256Signer with fn verify(
+pub impl @moongard.Signer for HmacSha256Signer with fn verify(
   self,
   payload : Bytes,
   mac : Bytes,
@@ -31,4 +31,4 @@ pub impl @moongrd.Signer for HmacSha256Signer with fn verify(
 
 ///|
 /// trait 方法显式晋升([0079] 标准动作)。
-pub extend HmacSha256Signer with @moongrd.Signer::{sign, verify}
+pub extend HmacSha256Signer with @moongard.Signer::{sign, verify}

@@ -1,4 +1,4 @@
-# MoonGrd Guides
+# MoonGard Guides
 
 按手感选路:初级两篇走回调方言,半小时上一门;高级三篇下到 token 核与
 五换挡位。所有代码均取自仓内可跑实况(测试与 `examples/`),命令皆可

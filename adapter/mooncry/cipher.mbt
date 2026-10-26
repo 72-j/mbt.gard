@@ -14,7 +14,7 @@ pub fn AesGcmCipher::new(key : Bytes) -> AesGcmCipher {
 }
 
 ///|
-pub impl @moongrd.Cipher for AesGcmCipher with fn seal(
+pub impl @moongard.Cipher for AesGcmCipher with fn seal(
   self,
   plaintext : Bytes,
   nonce : Bytes,
@@ -25,7 +25,7 @@ pub impl @moongrd.Cipher for AesGcmCipher with fn seal(
 }
 
 ///|
-pub impl @moongrd.Cipher for AesGcmCipher with fn open(
+pub impl @moongard.Cipher for AesGcmCipher with fn open(
   self,
   ciphertext : Bytes,
   nonce : Bytes,
@@ -45,4 +45,4 @@ pub impl @moongrd.Cipher for AesGcmCipher with fn open(
 
 ///|
 /// trait 方法显式晋升([0079] 标准动作)。
-pub extend AesGcmCipher with @moongrd.Cipher::{seal, open}
+pub extend AesGcmCipher with @moongard.Cipher::{seal, open}

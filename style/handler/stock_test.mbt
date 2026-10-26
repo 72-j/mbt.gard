@@ -2,8 +2,8 @@
 // swap 换装(紧急停门与复活)/审计换装。
 
 ///|
-fn stock_config() -> @moongrd.GuardConfig {
-  @moongrd.GuardConfig::make(
+fn stock_config() -> @moongard.GuardConfig {
+  @moongard.GuardConfig::make(
     issuer="iss1",
     audience="aud1",
     access_ttl_ms=60000L,
@@ -12,18 +12,18 @@ fn stock_config() -> @moongrd.GuardConfig {
 }
 
 ///|
-fn stock_signer() -> &@moongrd.Signer {
+fn stock_signer() -> &@moongard.Signer {
   @mooncry.HmacSha256Signer::new(Bytes::make(32, b'\x71'))
 }
 
 ///|
 fn stock_token(sub : String, jti : String) -> String {
-  @moongrd.issue(
+  @moongard.issue(
     stock_config(),
     stock_signer(),
     1000000L,
     sub,
-    @moongrd.TokenType::Access,
+    @moongard.TokenType::Access,
     jti,
   ).token
 }
@@ -85,7 +85,7 @@ async test "一键换装:紧急停门与复活,已挂门即时生效" {
   // 一键紧急停门:admit 换全拒 → alice 立刻拒(Unresolved,dispatch 不曾到场)
   handler.swap_admit(admit=@handler.admit_none())
   let out = door.run(1000000L, alice, Json::string("x"))
-  assert_true(out is Err(@moongrd.GuardErr::Unresolved("alice")))
+  assert_true(out is Err(@moongard.GuardErr::Unresolved("alice")))
   // 一键复活:换回名单准入 → 放行
   handler.swap_admit(admit=@handler.admit_allowlist(allow=["alice"]))
   assert_true(door.run(1000000L, alice, Json::string("x")) is Ok(_))

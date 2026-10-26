@@ -1,7 +1,15 @@
 # Changelog
 
-本文件记录 MoonGrd 的显著变更。格式参照 Keep a Changelog;
+本文件记录 MoonGard 的显著变更。格式参照 Keep a Changelog;
 版本遵循语义化版本(0.x 为实验期,API 仍可能随反馈调整)。
+
+## 0.1.2（2026-10-27）
+
+### Changed
+
+- **模块更名** `thy1016/moongrd` → `thy1016/moongard`（旧名弃用,不再发版）。
+  **Breaking**:导入路径与 `@moongard` 限定名随名——消费方改 import 路径
+  与限定前缀即可,其余 API 面不变;代码逻辑零变更。
 
 ## 0.1.1（2026-10-26）
 
