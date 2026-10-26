@@ -33,14 +33,20 @@ pub(all) struct Guard[TSubj, TReq, TResp] {
 }
 
 ///|
+/// 初级方言(D-G17):全标签实参 + audit 可省——省略即吞流形 no-op
+/// (D-G11 的合法沉没),初级三钩起步,进阶再挂 audit=。
 pub fn[TSubj, TReq, TResp] Guard::new(
-  config : GuardConfig,
-  signer : &Signer,
-  revocations : &RevocationStore,
-  resolve : async (String) -> TSubj?,
-  dispatch : async (TSubj, TReq) -> TResp,
-  audit : async (AuditEvent) -> Unit,
+  config~ : GuardConfig,
+  signer~ : &Signer,
+  revocations~ : &RevocationStore,
+  resolve~ : async (String) -> TSubj?,
+  dispatch~ : async (TSubj, TReq) -> TResp,
+  audit? : async (AuditEvent) -> Unit,
 ) -> Guard[TSubj, TReq, TResp] {
+  let audit = match audit {
+    Some(a) => a
+    None => async fn(_e : AuditEvent) -> Unit { () }
+  }
   { config, signer, revocations, resolve, dispatch, audit, }
 }
 

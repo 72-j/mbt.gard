@@ -39,12 +39,12 @@ fn g2_guard(
   revocations : &@moongrd.RevocationStore,
 ) -> @moongrd.Guard[DUser, String, String] {
   @moongrd.Guard::new(
-    g1_config(),
-    g1_signer(),
-    revocations,
-    g2_resolve,
-    g2_dispatch,
-    g2_audit,
+    config=g1_config(),
+    signer=g1_signer(),
+    revocations~,
+    resolve=g2_resolve,
+    dispatch=g2_dispatch,
+    audit=g2_audit,
   )
 }
 
@@ -139,12 +139,12 @@ async test "G2 陌生人:resolve None → Unresolved,sub 随审计" {
 async test "G2 匿名 async 钩子字面量:语法探针转正罐" {
   g2_log.events.clear()
   let door = @moongrd.Guard::new(
-    g1_config(),
-    g1_signer(),
-    @memstore.MemRevocationStore::new(),
-    async fn(name : String) -> DUser? { Some({ name, }) },
-    async fn(u : DUser, _req : String) -> String { "\{u.name}!" },
-    async fn(e : @moongrd.AuditEvent) -> Unit { g2_log.events.push(e) },
+    config=g1_config(),
+    signer=g1_signer(),
+    revocations=@memstore.MemRevocationStore::new(),
+    resolve=async fn(name : String) -> DUser? { Some({ name, }) },
+    dispatch=async fn(u : DUser, _req : String) -> String { "\{u.name}!" },
+    audit=async fn(e : @moongrd.AuditEvent) -> Unit { g2_log.events.push(e) },
   )
   let token = g2_login("jti-a5")
   let out = door.run(1000000L, token.token, "yo")
@@ -153,4 +153,24 @@ async test "G2 匿名 async 钩子字面量:语法探针转正罐" {
     Err(_) => abort("字面量钩子全链应绿")
   }
   assert_eq(g2_log.events.length(), 4)
+}
+
+///|
+async test "G2 初级方言:audit 可省(吞流 no-op),五参起步" {
+  g2_log.events.clear()
+  let door = @moongrd.Guard::new(
+    config=g1_config(),
+    signer=g1_signer(),
+    revocations=@memstore.MemRevocationStore::new(),
+    resolve=async fn(name : String) -> DUser? { Some({ name, }) },
+    dispatch=async fn(u : DUser, _req : String) -> String { "\{u.name}:ok" },
+  )
+  let token = g2_login("jti-a6")
+  let out = door.run(1000000L, token.token, "hi")
+  match out {
+    Ok(resp) => assert_eq(resp, "alice:ok")
+    Err(_) => abort("初级形应全链绿")
+  }
+  // 吞流审计:缺省 no-op,事件不进账
+  assert_eq(g2_log.events.length(), 0)
 }

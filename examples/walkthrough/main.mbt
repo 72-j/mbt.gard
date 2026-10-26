@@ -48,18 +48,20 @@ async fn main {
   println("")
   println("== 2 四段门:verify → revocation → resolve → dispatch ==")
   let door : @moongrd.Guard[String, String, String] = @moongrd.Guard::new(
-    config,
-    signer,
-    revocations,
-    async fn(sub : String) -> String? {
+    config~,
+    signer~,
+    revocations~,
+    resolve=async fn(sub : String) -> String? {
       if sub == "alice" {
         Some(sub)
       } else {
         None
       }
     },
-    async fn(u : String, req : String) -> String { "已为 \{u} 处理:\{req}" },
-    async fn(e : @moongrd.AuditEvent) -> Unit {
+    dispatch=async fn(u : String, req : String) -> String {
+      "已为 \{u} 处理:\{req}"
+    },
+    audit=async fn(e : @moongrd.AuditEvent) -> Unit {
       println("  audit[\{e.stage}] ok=\{e.ok} \{e.detail}")
     },
   )

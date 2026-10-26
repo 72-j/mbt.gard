@@ -43,14 +43,25 @@ match @moongrd.refresh(config, signer, store, now, refresh_token, next_jti) {
 
 ### 3 四段门(Guard 单构造点;钩子全 async)
 
+初级形——全标签实参,audit 可省(省略 = 吞流,进阶再挂):
+
 ```moonbit
-let door : @moongrd.Guard[User, Req, Resp] = @moongrd.Guard::new(
-  config, signer, revocations,
-  async fn(sub : String) -> User? { ... },            // resolve
-  async fn(u : User, req : Req) -> Resp { ... },      // dispatch
-  async fn(e : @moongrd.AuditEvent) -> Unit { ... },  // audit,不可失败
+let door = @moongrd.Guard::new(
+  config=config, signer=signer, revocations=revocations,
+  resolve=async fn(sub : String) -> User? { ... },      // sub → 主体
+  dispatch=async fn(u : User, req : Req) -> Resp { ... }, // 业务到达
 )
 let resp = door.run(now, access_token, request)
+```
+
+进阶形——挂审计(每段落一行事件,fail 短路带拒因):
+
+```moonbit
+let door = @moongrd.Guard::new(
+  config=config, signer=signer, revocations=revocations,
+  resolve=..., dispatch=...,
+  audit=async fn(e : @moongrd.AuditEvent) -> Unit { ... },  // 不可失败
+)
 ```
 
 ### 4 真加密面(adapter/mooncry)
