@@ -48,7 +48,23 @@ mac + 时间窗 + iss/aud,快是特性。
 那天,唯一路径 = 照 `Signer` 模式立 `PasswordHasher` trait + argon2
 adapter(D-G6 同构)——YAGNI,不预铺。
 
-## 五、演进锚点总表
+## 五、信道认证的取舍(在位/备位;详表 = moonkcp `.mingspace/secchan_ming.md` §七)
+
+| 位 | 方式 | 取舍 |
+|---|---|---|
+| **在位** | PSK-CR(三消息挑战应答,双向互认) | 无 PFS——内网/白名单/PSK 可控分发够用;先通不卡工期 |
+| **备位·主** | Noise IKpsk2(X25519 临时 DH + psk2 互认 + 服务端静态公钥钉死) | 有 PFS + 免 MITM——公网运维必选;A2 触发时评审上座 |
+| **备位·族** | Noise NK/KK/XX、Ed25519 签名挑战、TLS 1.3/mTLS、ML-KEM 混合 | 按需触发:客户端匿名走 NK;身份不预分发走 XX;已有 PKI 走 TLS;抗量子远期 |
+
+取舍三问:**在哪**(内网 A 够/公网 PFS 必选)、**能预置什么**(PSK 可安全
+分发走 A,只能发公钥走 IK/NK,都不能走 XX)、**PFS 要不要**(内容价值期
+长于 PSK 泄露窗口则必须)。两条红线:协议构造期钉死禁在线协商(降级面);
+白名单场景双向互认是底线。
+
+不变式:握手可插拔——`SessionKeys` 是唯一交换物,换挡 = 换 Handshake
+实现,记录层与上层零改(D-S1)。
+
+## 六、演进锚点总表
 
 | 维度 | 现状 | 升级形 | 不变式 |
 |---|---|---|---|
@@ -56,6 +72,6 @@ adapter(D-G6 同构)——YAGNI,不预铺。
 | 签名算法 | **G3 已落:HMAC-SHA256**(adapter/mooncry,RFC 4231 KAT 过 trait)+ AES-GCM Cipher | Ed25519(非对称验签分发形)↔ 后量子 | `Signer` trait 签名即接口 |
 | 存储 | G1 memstore 已落(族谱+吊销表+sweep) | CouchDB / redis 按 trait 自带 | `RefreshStore`/`RevocationStore` trait |
 | **管线** | **G2 runner 已落**(Guard[TSubj,TReq,TResp] 四段:verify→revocation→resolve→dispatch,段段审计;钩子匿名 async fn 字面量可内联) | 段增删/审计分流 | 段间纯值;校验序框架私产;拒绝短路带原因 |
-| 信道 | 外置 | moonkcp secchan(PSK-CR+HKDF+AEAD) | 信道永不在本仓 |
+| 信道 | **在位 PSK-CR(已通);备位 Noise IKpsk2(A2 评审上座)** | NK/KK/XX/签名挑战/TLS/ML-KEM 按需 | 信道永不在本仓;SessionKeys 唯一交换物 |
 | 口令拉伸 | 框架外 | `PasswordHasher` trait(触发才立) | 慢哈希不进校验路 |
 | hooks 异步色 | async fn 型零 import;async trait 声明语法已证(D-G12 案 A) | async impl 实练(G2 runner 已用 async 字面量钩子) | 核心零依赖 |
