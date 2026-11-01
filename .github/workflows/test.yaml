@@ -1,0 +1,71 @@
+# 独立仓 CI（体例承 mbt.jsonld 同名 workflow）：
+#   · static（仅 Linux，只跑一次）：check（裸档）+ .mbti 漂移门。
+#   · test（3 OS 矩阵）：test 的 wasm + native 双档。
+#   · 工具链安装集中到 .github/actions/setup-moon；门纪律：每门一步、
+#     不串命令、禁 continue-on-error / || true。
+#   · 口径注记：本仓 --deny-warn 档**未开**——examples/测试件 15 处
+#     [0067] unused_async 颜色税为既有账（async 槽喂不 suspend 的字面量，
+#     moongrd 坑账既钉的结构性残留；生产面 0.1.1 已根除）。债清后本文件
+#     与 gate.sh 同步升 deny-warn 档。
+name: Test
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: Static gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Moon
+        uses: ./.github/actions/setup-moon
+
+      - name: 静态门 · check（裸档——[0067] 既有账，见头注）
+        run: moon check
+
+      - name: 门·.mbti 漂移
+        run: |
+          moon info
+          drift="$(git status --porcelain -- '*.mbti')"
+          if [ -n "$drift" ]; then
+            echo "::error::.mbti 与源码漂移——本地跑 moon info，把 .mbti 与产生它的改动同笔提交："
+            echo "$drift"
+            exit 1
+          fi
+
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Moon
+        uses: ./.github/actions/setup-moon
+
+      - name: 测试（wasm + native 双档）
+        run: |
+          echo "=== Wasm target ==="
+          moon test --target wasm
+          echo "=== Native target ==="
+          moon test --target native
