@@ -1,0 +1,77 @@
+# ==========================================================
+# QuickMachine **业务面**（纪律：与生成面分文件）
+# 管：业务分布 / 回归基线 / 覆盖率要求 —— [business] [random_check]
+#     [[assert_check]] [environment] [failure_detection] [report]
+# 生成面见同目录 quicktest_gen.toml
+#
+# ⚠ v1 守恒口径（系统侧 P0 落地，这里只声明分布与基线）：
+#   · 守恒律四口径（扫账四验，每步全过）——①链长守恒：族内记录数 ==
+#     代际数 + 1（Seed 一张，每代换发恰好添一张）；②used 数守恒：族内
+#     used=true 记录数 == 代际数（每代换发恰好 mark_used 一张）；③死族
+#     全撤：ReplayOld 得 Replayed 后族内每条记录 revoked=true（D-G3 撤
+#     全族），Dead 态任意族内票再换发必 Err(Revoked)；④伪造不动账：
+#     mac 合法但账本无记录 = UnknownToken，账本零增删。
+#   · 模型镜像 = jti 链（代际数 + 当前/上代票号 "g{n}"）；token 串是
+#     签名产物，不透明不进模型（system 侧经 claims.jti 对账）。
+#   · 无载荷机：命令全是裸构造（无 Span 池）；ReplayOld 有 gen>=1 前置
+#     （无上代票即无可重放），Dead 态仅 Forge 可走（族死账仍可伪造试探）。
+# ==========================================================
+[business]
+ref_id_range = 4
+
+[business.weights]
+Seed = 3
+Rotate = 5
+ReplayOld = 2
+Forge = 2
+
+[random_check]
+seed = 20261101
+cases = 60
+max_commands = 12
+max_tries = 20
+shrink = true
+max_shrinks = 60
+max_shrink_rounds = 16
+required_command_names = ["Seed", "Rotate", "ReplayOld", "Forge"]
+
+[environment]
+isolation_strategy = "per_test_case"
+before_each = []
+after_each = []
+timeout_seconds = 30
+
+[failure_detection]
+failure_if = [
+  "postcondition fails",
+  "model != system observable state",
+  "unexpected error code",
+]
+
+[report]
+include_trace = true
+include_model = true
+include_responses = true
+
+# ==========================================================
+# 固定脚本（回归基线）：Seed → Rotate → Forge（活族伪造试探）→
+#   Rotate → ReplayOld（重放撤全族，Alive→Dead）→ Forge（死族伪造试探）。
+#   六步全进引擎（commands_run = 6），四命令名全覆盖。
+# ==========================================================
+[[assert_check]]
+event = "Seed"
+
+[[assert_check]]
+event = "Rotate"
+
+[[assert_check]]
+event = "Forge"
+
+[[assert_check]]
+event = "Rotate"
+
+[[assert_check]]
+event = "ReplayOld"
+
+[[assert_check]]
+event = "Forge"

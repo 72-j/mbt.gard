@@ -24,4 +24,8 @@ description = "MoonGard — Guardian 式认证管道框架(access/refresh 双 to
 import {
   "moonbitlang/async@0.22.4",
   "cc06b/mooncry@0.95.0",
+  // test-only:quicktest 守恒律机(qcs 0.0.1 在册;quickcheck 统一 0.15.1——
+  // 0.14.0 注册表 tarball 是旧格式 moon.mod.json,新工具链拒装,家法同款)
+  "moonbit-community/quickcheck_statemachine@0.0.1",
+  "moonbitlang/quickcheck@0.15.1",
 }

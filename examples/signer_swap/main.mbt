@@ -97,10 +97,8 @@ async fn guard_scene(
     config=hd_config(),
     signer~,
     revocations~,
-    resolve=async fn(sub : String) -> String? { Some(sub) },
-    dispatch=async fn(sub : String, _req : String) -> String {
-      "为 \{sub} 服务"
-    },
+    resolve=fn(sub : String) -> String? { Some(sub) },
+    dispatch=fn(sub : String, _req : String) -> String { "为 \{sub} 服务" },
   )
   let issued = @moongard.issue(
     hd_config(),

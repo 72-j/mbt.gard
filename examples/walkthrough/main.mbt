@@ -51,17 +51,17 @@ async fn main {
     config~,
     signer~,
     revocations~,
-    resolve=async fn(sub : String) -> String? {
+    resolve=fn(sub : String) -> String? {
       if sub == "alice" {
         Some(sub)
       } else {
         None
       }
     },
-    dispatch=async fn(u : String, req : String) -> String {
+    dispatch=fn(u : String, req : String) -> String {
       "已为 \{u} 处理:\{req}"
     },
-    audit=async fn(e : @moongard.AuditEvent) -> Unit {
+    audit=fn(e : @moongard.AuditEvent) -> Unit {
       println("  audit[\{e.stage}] ok=\{e.ok} \{e.detail}")
     },
   )

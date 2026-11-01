@@ -11,7 +11,7 @@ struct AuditLog {
 let g2_log : AuditLog = { events: [], }
 
 ///|
-async fn g2_audit(e : @moongard.AuditEvent) -> Unit {
+fn g2_audit(e : @moongard.AuditEvent) -> Unit {
   g2_log.events.push(e)
 }
 
@@ -21,7 +21,7 @@ struct DUser {
 }
 
 ///|
-async fn g2_resolve(name : String) -> DUser? {
+fn g2_resolve(name : String) -> DUser? {
   if name == "alice" {
     Some({ name, })
   } else {
@@ -30,7 +30,7 @@ async fn g2_resolve(name : String) -> DUser? {
 }
 
 ///|
-async fn g2_dispatch(u : DUser, req : String) -> String {
+fn g2_dispatch(u : DUser, req : String) -> String {
   "\{u.name}:\{req}"
 }
 
@@ -42,9 +42,9 @@ fn g2_guard(
     config=g1_config(),
     signer=g1_signer(),
     revocations~,
-    resolve=g2_resolve,
-    dispatch=g2_dispatch,
-    audit=g2_audit,
+    resolve=fn(name : String) -> DUser? { g2_resolve(name) },
+    dispatch=fn(u : DUser, req : String) { g2_dispatch(u, req) },
+    audit=fn(e : @moongard.AuditEvent) { g2_audit(e) },
   )
 }
 
@@ -142,9 +142,9 @@ async test "G2 匿名 async 钩子字面量:语法探针转正罐" {
     config=g1_config(),
     signer=g1_signer(),
     revocations=@memstore.MemRevocationStore::new(),
-    resolve=async fn(name : String) -> DUser? { Some({ name, }) },
-    dispatch=async fn(u : DUser, _req : String) -> String { "\{u.name}!" },
-    audit=async fn(e : @moongard.AuditEvent) -> Unit { g2_log.events.push(e) },
+    resolve=fn(name : String) -> DUser? { Some({ name, }) },
+    dispatch=fn(u : DUser, _req : String) -> String { "\{u.name}!" },
+    audit=fn(e : @moongard.AuditEvent) -> Unit { g2_log.events.push(e) },
   )
   let token = g2_login("jti-a5")
   let out = door.run(1000000L, token.token, "yo")
@@ -162,8 +162,8 @@ async test "G2 初级方言:audit 可省(吞流 no-op),五参起步" {
     config=g1_config(),
     signer=g1_signer(),
     revocations=@memstore.MemRevocationStore::new(),
-    resolve=async fn(name : String) -> DUser? { Some({ name, }) },
-    dispatch=async fn(u : DUser, _req : String) -> String { "\{u.name}:ok" },
+    resolve=fn(name : String) -> DUser? { Some({ name, }) },
+    dispatch=fn(u : DUser, _req : String) -> String { "\{u.name}:ok" },
   )
   let token = g2_login("jti-a6")
   let out = door.run(1000000L, token.token, "hi")
@@ -207,9 +207,9 @@ async test "G2 协议换挡:自定义 AuthProtocol 万能票进门,管线四行�
     config=g1_config(),
     signer=g1_signer(),
     revocations=@memstore.MemRevocationStore::new(),
-    resolve=async fn(name : String) -> DUser? { Some({ name, }) },
-    dispatch=async fn(u : DUser, _req : String) -> String { "\{u.name}:ok" },
-    audit=g2_audit,
+    resolve=fn(name : String) -> DUser? { Some({ name, }) },
+    dispatch=fn(u : DUser, _req : String) -> String { "\{u.name}:ok" },
+    audit=fn(e : @moongard.AuditEvent) { g2_audit(e) },
     protocol=MasterProtocol::{ },
   )
   let out = door.run(1000000L, "any-credential-string", "hi")

@@ -1,0 +1,69 @@
+# ==========================================================
+# moongard 会话族守恒 FSM（QuickMachine 机器数据；手写领域机）
+# 体式承 pbtgen（fsm TOML = states/events/transitions；jsonld/moonxml 同款）。
+# v1 口径：refresh 族台账位面（Fresh/Alive/Dead + Seed/Rotate/ReplayOld/Forge）。
+#   守恒律是被测性质，不住转移表——系统侧每步扫账四验（链长守恒 + used 数
+#   守恒 + 死族全撤 + 伪造不动账），违律即 Error(1)；模型侧只镜像 jti 链
+#   （代际 + 当前/上代票号，token 串是签名产物不进模型）。
+#   语义源 = refresh.mbt D-G3：单次有效性（used 再现 = 重放）+ 重放撤全族
+#   （revoke_family，新老皆拒）+ 伪造不可入账（账本无记录 = UnknownToken）。
+# ==========================================================
+
+[meta]
+name = "moongard_family_ledger"
+version = "0.1.0"
+prefix = "Mg"
+trait_name = "Conservation"
+style = "mutable"
+
+[[states]]
+name = "Fresh"
+is_initial = true
+
+[[states]]
+name = "Alive"
+
+[[states]]
+name = "Dead"
+
+[[events]]
+name = "Seed"
+
+[[events]]
+name = "Rotate"
+
+[[events]]
+name = "ReplayOld"
+
+[[events]]
+name = "Forge"
+
+[[transitions]]
+from = "Fresh"
+to = "Alive"
+on = "Seed"
+action = "do_seed"
+
+[[transitions]]
+from = "Alive"
+to = "Alive"
+on = "Rotate"
+action = "do_rotate"
+
+[[transitions]]
+from = "Alive"
+to = "Dead"
+on = "ReplayOld"
+action = "do_replay"
+
+[[transitions]]
+from = "Alive"
+to = "Alive"
+on = "Forge"
+action = "do_forge_alive"
+
+[[transitions]]
+from = "Dead"
+to = "Dead"
+on = "Forge"
+action = "do_forge_dead"
