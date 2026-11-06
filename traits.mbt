@@ -19,6 +19,7 @@ pub(open) trait Cipher {
 /// refresh 族谱记录:同 family_id = 同一会话的历次 refresh 串
 /// (重放检测撤全族的底座,D-G3)。used = 已消费(再现即重放);
 /// revoked = 族被撤(盗用或登出)。
+#derive(Eq, Debug)
 pub(all) struct RefreshRecord {
   family_id : String
   sub : String
@@ -26,7 +27,7 @@ pub(all) struct RefreshRecord {
   expires_at : Int64
   used : Bool
   revoked : Bool
-} derive(Eq, Debug)
+}
 
 ///|
 /// refresh 存储面:旋转/重放检测的底座。G0 同步色(memstore G1 即用);

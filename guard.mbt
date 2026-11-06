@@ -4,21 +4,23 @@
 
 ///|
 /// 守护拒错(认证面)。
+#derive(Eq, Debug)
 pub(all) enum GuardErr {
   Verify(VerifyErr)
   Revoked
   Unresolved(String)
-} derive(Eq, Debug)
+}
 
 ///|
 /// 审计事件:每段落一行;早期拒绝 sub/jti 可为空串(detail 带拒因)。
+#derive(Eq, Debug)
 pub(all) struct AuditEvent {
   stage : String
   sub : String
   jti : String
   ok : Bool
   detail : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// 会话认证协议位(D-G19:开放集,trait 非 enum)。框架私产的是校验序

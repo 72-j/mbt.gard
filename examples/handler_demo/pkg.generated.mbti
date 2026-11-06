@@ -2,6 +2,7 @@
 package "thy1016/moongard/examples/handler_demo"
 
 import {
+  "moonbitlang/core/json",
   "thy1016/moongard",
   "thy1016/moongard/style/handler",
 }

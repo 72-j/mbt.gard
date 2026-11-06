@@ -2,6 +2,7 @@
 package "thy1016/moongard/style/handler"
 
 import {
+  "moonbitlang/core/json",
   "thy1016/moongard",
 }
 
@@ -18,26 +19,26 @@ pub fn audit_println() -> (@moongard.AuditEvent) -> Unit
 
 pub fn audit_silent() -> (@moongard.AuditEvent) -> Unit
 
-pub fn dispatch_echo(prefix~ : String) -> (String, Json) -> Json
+pub fn dispatch_echo(prefix~ : String) -> (String, @json.Json) -> @json.Json
 
-pub fn mount(config~ : @moongard.GuardConfig, signer~ : &@moongard.Signer, revocations~ : &@moongard.RevocationStore, handler~ : &DoorHandler) -> @moongard.Guard[String, Json, Json]
+pub fn mount(config~ : @moongard.GuardConfig, signer~ : &@moongard.Signer, revocations~ : &@moongard.RevocationStore, handler~ : &DoorHandler) -> @moongard.Guard[String, @json.Json, @json.Json]
 
 // Errors
 
 // Types and methods
 pub(all) struct FlexDoor {
   mut admit_fn : (String) -> Bool
-  mut dispatch_fn : (String, Json) -> Json
+  mut dispatch_fn : (String, @json.Json) -> @json.Json
   mut audit_fn : (@moongard.AuditEvent) -> Unit
 }
 pub async fn FlexDoor::admit(Self, String) -> Bool
 pub async fn FlexDoor::audit(Self, @moongard.AuditEvent) -> Unit
 pub fn FlexDoor::demo(allow~ : Array[String], prefix~ : String) -> Self
-pub async fn FlexDoor::dispatch(Self, String, Json) -> Json
-pub fn FlexDoor::new(admit_fn~ : (String) -> Bool, dispatch_fn~ : (String, Json) -> Json, audit_fn~ : (@moongard.AuditEvent) -> Unit) -> Self
+pub async fn FlexDoor::dispatch(Self, String, @json.Json) -> @json.Json
+pub fn FlexDoor::new(admit_fn~ : (String) -> Bool, dispatch_fn~ : (String, @json.Json) -> @json.Json, audit_fn~ : (@moongard.AuditEvent) -> Unit) -> Self
 pub fn FlexDoor::swap_admit(Self, admit~ : (String) -> Bool) -> Unit
 pub fn FlexDoor::swap_audit(Self, audit~ : (@moongard.AuditEvent) -> Unit) -> Unit
-pub fn FlexDoor::swap_dispatch(Self, dispatch~ : (String, Json) -> Json) -> Unit
+pub fn FlexDoor::swap_dispatch(Self, dispatch~ : (String, @json.Json) -> @json.Json) -> Unit
 pub impl DoorHandler for FlexDoor
 
 // Type aliases
@@ -45,6 +46,6 @@ pub impl DoorHandler for FlexDoor
 // Traits
 pub(open) trait DoorHandler {
   async fn admit(Self, String) -> Bool
-  async fn dispatch(Self, String, Json) -> Json
+  async fn dispatch(Self, String, @json.Json) -> @json.Json
   async fn audit(Self, @moongard.AuditEvent) -> Unit
 }

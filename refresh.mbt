@@ -6,20 +6,22 @@
 
 ///|
 /// 换发错误。Verify(Expired) 即"回握手"信号(A0 语义,由消费方解释)。
+#derive(Eq, Debug)
 pub(all) enum RefreshErr {
   Verify(VerifyErr)
   UnknownToken
   Replayed(String)
   Revoked(Claims)
-} derive(Eq, Debug)
+}
 
 ///|
 /// 换发产物:新 refresh 票 + 族号 + 主体。
+#derive(Eq, Debug)
 pub(all) struct Refreshed {
   refresh : Issued
   family_id : String
   sub : String
-} derive(Eq, Debug)
+}
 
 ///|
 /// 换发:verify_for(refresh) → 账本核 → 旧票 mark_used → 新票入族。

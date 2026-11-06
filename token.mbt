@@ -2,14 +2,16 @@
 
 ///|
 /// 签发产物:线形 token(payload.mac 两段)+ 定型 claims。
+#derive(Eq, Debug)
 pub(all) struct Issued {
   token : String
   claims : Claims
-} derive(Eq, Debug)
+}
 
 ///|
 /// 校验错误:mac 之后的错携带 claims(签名已过,载荷可信,供审计定罪);
 /// mac 之前的错不携带(不可信物不外传)。
+#derive(Eq, Debug)
 pub(all) enum VerifyErr {
   Malformed(String)
   BadMac
@@ -18,7 +20,7 @@ pub(all) enum VerifyErr {
   WrongIssuer(Claims)
   WrongAudience(Claims)
   WrongType(Claims)
-} derive(Eq, Debug)
+}
 
 ///|
 /// 签发:claims 定型 → 定序载荷 JSON → mac → base64url 两段线形。

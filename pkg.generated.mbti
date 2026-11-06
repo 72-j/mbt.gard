@@ -17,17 +17,19 @@ pub fn verify_for(GuardConfig, &Signer, Int64, String, TokenType) -> Result[Clai
 // Errors
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) struct AuditEvent {
   stage : String
   sub : String
   jti : String
   ok : Bool
   detail : String
-} derive(Eq, @debug.Debug)
+}
 pub fn AuditEvent::equal(Self, Self) -> Bool
 pub fn AuditEvent::not_equal(Self, Self) -> Bool
 pub fn AuditEvent::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Claims {
   sub : String
   iss : String
@@ -36,7 +38,7 @@ pub(all) struct Claims {
   exp : Int64
   typ : TokenType
   jti : String
-} derive(Eq, @debug.Debug)
+}
 pub fn Claims::equal(Self, Self) -> Bool
 pub fn Claims::not_equal(Self, Self) -> Bool
 pub fn Claims::to_repr(Self) -> @debug.Repr
@@ -53,45 +55,50 @@ pub(all) struct Guard[TSubj, TReq, TResp] {
 pub fn[TSubj, TReq, TResp] Guard::new(config~ : GuardConfig, signer~ : &Signer, revocations~ : &RevocationStore, resolve~ : async (String) -> TSubj?, dispatch~ : async (TSubj, TReq) -> TResp, audit? : async (AuditEvent) -> Unit, protocol? : &AuthProtocol) -> Self[TSubj, TReq, TResp]
 pub async fn[TSubj, TReq, TResp] Guard::run(Self[TSubj, TReq, TResp], Int64, String, TReq) -> Result[TResp, GuardErr]
 
+#derive(Eq, @debug.Debug)
 pub(all) struct GuardConfig {
   issuer : String
   audience : String
   allowed_drift_ms : Int64
   access_ttl_ms : Int64
   refresh_ttl_ms : Int64
-} derive(Eq, @debug.Debug)
+}
 pub fn GuardConfig::equal(Self, Self) -> Bool
 pub fn GuardConfig::make(issuer~ : String, audience~ : String, access_ttl_ms~ : Int64, refresh_ttl_ms~ : Int64) -> Self
 pub fn GuardConfig::not_equal(Self, Self) -> Bool
 pub fn GuardConfig::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum GuardErr {
   Verify(VerifyErr)
   Revoked
   Unresolved(String)
-} derive(Eq, @debug.Debug)
+}
 pub fn GuardErr::equal(Self, Self) -> Bool
 pub fn GuardErr::not_equal(Self, Self) -> Bool
 pub fn GuardErr::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Issued {
   token : String
   claims : Claims
-} derive(Eq, @debug.Debug)
+}
 pub fn Issued::equal(Self, Self) -> Bool
 pub fn Issued::not_equal(Self, Self) -> Bool
 pub fn Issued::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum RefreshErr {
   Verify(VerifyErr)
   UnknownToken
   Replayed(String)
   Revoked(Claims)
-} derive(Eq, @debug.Debug)
+}
 pub fn RefreshErr::equal(Self, Self) -> Bool
 pub fn RefreshErr::not_equal(Self, Self) -> Bool
 pub fn RefreshErr::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct RefreshRecord {
   family_id : String
   sub : String
@@ -99,16 +106,17 @@ pub(all) struct RefreshRecord {
   expires_at : Int64
   used : Bool
   revoked : Bool
-} derive(Eq, @debug.Debug)
+}
 pub fn RefreshRecord::equal(Self, Self) -> Bool
 pub fn RefreshRecord::not_equal(Self, Self) -> Bool
 pub fn RefreshRecord::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) struct Refreshed {
   refresh : Issued
   family_id : String
   sub : String
-} derive(Eq, @debug.Debug)
+}
 pub fn Refreshed::equal(Self, Self) -> Bool
 pub fn Refreshed::not_equal(Self, Self) -> Bool
 pub fn Refreshed::to_repr(Self) -> @debug.Repr
@@ -119,16 +127,18 @@ pub fn TokenProtocol::new() -> Self
 pub async fn TokenProtocol::verify_access(Self, config~ : GuardConfig, signer~ : &Signer, now~ : Int64, token~ : String) -> Result[Claims, VerifyErr]
 pub impl AuthProtocol for TokenProtocol
 
+#derive(Eq, @debug.Debug)
 pub(all) enum TokenType {
   Access
   Refresh
-} derive(Eq, @debug.Debug)
+}
 pub fn TokenType::equal(Self, Self) -> Bool
 pub fn TokenType::not_equal(Self, Self) -> Bool
 pub fn TokenType::of_wire(String) -> Self?
 pub fn TokenType::to_repr(Self) -> @debug.Repr
 pub fn TokenType::wire(Self) -> String
 
+#derive(Eq, @debug.Debug)
 pub(all) enum VerifyErr {
   Malformed(String)
   BadMac
@@ -137,7 +147,7 @@ pub(all) enum VerifyErr {
   WrongIssuer(Claims)
   WrongAudience(Claims)
   WrongType(Claims)
-} derive(Eq, @debug.Debug)
+}
 pub fn VerifyErr::equal(Self, Self) -> Bool
 pub fn VerifyErr::not_equal(Self, Self) -> Bool
 pub fn VerifyErr::to_repr(Self) -> @debug.Repr

@@ -2,10 +2,11 @@
 
 ///|
 /// token 型:access(业务门)/ refresh(换发门)。
+#derive(Eq, Debug)
 pub(all) enum TokenType {
   Access
   Refresh
-} derive(Eq, Debug)
+}
 
 ///|
 /// 线形名(JSON typ 字段取值)。
@@ -31,6 +32,7 @@ pub fn TokenType::of_wire(w : String) -> TokenType? {
 ///|
 /// 声明集:token 载荷定型字段。iat/exp 单位毫秒;时间全参数注入,
 /// 核心零时钟读(D-G2)。
+#derive(Eq, Debug)
 pub(all) struct Claims {
   sub : String
   iss : String
@@ -39,4 +41,4 @@ pub(all) struct Claims {
   exp : Int64
   typ : TokenType
   jti : String
-} derive(Eq, Debug)
+}
